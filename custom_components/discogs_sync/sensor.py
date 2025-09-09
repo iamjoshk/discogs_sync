@@ -17,7 +17,7 @@ from .const import (
     UNIT_RECORDS, UNIT_LISTS, UNIT_FOLDERS
 )
 
-# Sensor definitions with state classes for Google Assistant compatibility
+# Sensor definitions with state classes for proper Home Assistant functionality
 SENSORS = [
     ("collection", "Collection", UNIT_RECORDS, ICON_RECORD, SensorStateClass.MEASUREMENT),
     ("wantlist", "Wantlist", UNIT_RECORDS, ICON_RECORD, SensorStateClass.MEASUREMENT), 
@@ -60,11 +60,6 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
         # Set precision for currency values
         if sensor_key.startswith("collection_value_"):
             self._attr_suggested_display_precision = 2
-        
-        # Don't set entity_category so main sensors can be exposed to Google Assistant
-        # Random record is diagnostic since it's not useful for voice queries
-        if sensor_key == "random_record":
-            self._attr_entity_category = EntityCategory.DIAGNOSTIC
         
         self._attr_device_info = {
             "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
