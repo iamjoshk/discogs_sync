@@ -49,6 +49,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
         if not hass.data[DOMAIN]:  # If it's the last entry, remove the services
             hass.services.async_remove(DOMAIN, "download_collection")
             hass.services.async_remove(DOMAIN, "download_wantlist")
+            hass.services.async_remove(DOMAIN, "download_user_list")
             
     return unload_ok
 

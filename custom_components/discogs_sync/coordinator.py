@@ -358,3 +358,13 @@ class DiscogsCoordinator(DataUpdateCoordinator):
         return await self.hass.async_add_executor_job(
             self.api_client.get_full_wantlist, username
         )
+    
+    async def get_user_list_items(self, list_id: int) -> list:
+        """Get user list items data."""
+        username = self._data.get("user")
+        if not username or username == "Unknown":
+            return []
+        
+        return await self.hass.async_add_executor_job(
+            self.api_client.get_user_list_items, username, list_id
+        )
