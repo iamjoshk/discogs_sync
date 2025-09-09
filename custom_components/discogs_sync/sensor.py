@@ -110,26 +110,30 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
         elif self._sensor_key == "user_lists":
             lists_data = self.coordinator.data.get("user_lists", {}).get("lists", [])
             if lists_data:
-                attrs["lists"] = {}
+                attrs["lists"] = []
                 for list_item in lists_data:
                     list_name = list_item.get("name", "Unknown List")
-                    attrs["lists"][list_name] = {
-                        "id": list_item.get("id"),
-                        "uri": list_item.get("uri"),
-                        "public": list_item.get("public")
-                    }
+                    attrs["lists"].append({
+                        list_name: {
+                            "id": list_item.get("id"),
+                            "uri": list_item.get("uri"),
+                            "public": list_item.get("public")
+                        }
+                    })
         elif self._sensor_key == "user_folders":
             folders_data = self.coordinator.data.get("user_folders", {}).get("folders", [])
             if folders_data:
-                attrs["folders"] = {}
+                attrs["folders"] = []
                 for folder in folders_data:
                     folder_name = folder.get("name", "Unknown Folder")
-                    attrs["folders"][folder_name] = {
-                        "id": folder.get("id"),
-                        "count": folder.get("count"),
-                        "name": folder.get("name"),
-                        "resource_url": folder.get("resource_url")
-                    }
+                    attrs["folders"].append({
+                        folder_name: {
+                            "id": folder.get("id"),
+                            "count": folder.get("count"),
+                            "name": folder.get("name"),
+                            "resource_url": folder.get("resource_url")
+                        }
+                    })
         
         # Add last updated timestamp
         last_updated_key = self._get_last_updated_key()
