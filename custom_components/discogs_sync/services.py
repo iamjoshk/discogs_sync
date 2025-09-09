@@ -90,7 +90,16 @@ async def _handle_download_service(
             _LOGGER.info("Saved %d items to %s", len(data), file_path)
         
         # Return data in response
-        return {service_type: data} if data else {"error": f"No {service_type} data available"}
+        if data:
+            return {service_type: data}
+        else:
+            # Log when no data is available (e.g., empty folder)
+            if service_type == "collection" and call.data.get("folder_id"):
+                folder_id = call.data.get("folder_id")
+                _LOGGER.warning("No collection data available for folder %s (folder may be empty)", folder_id)
+            else:
+                _LOGGER.warning("No %s data available", service_type)
+            return {"error": f"No {service_type} data available"}
         
     except Exception as err:
         _LOGGER.error("Failed to download %s: %s", service_type, err)
