@@ -146,5 +146,13 @@ class DiscogsOptionsFlowHandler(config_entries.OptionsFlow):
                     CONF_RANDOM_RECORD_UPDATE_INTERVAL,
                     default=current_random,
                 ): vol.All(vol.Coerce(int), vol.Range(min=0, max=1440)),
+                vol.Optional(
+                    CONF_USER_LISTS_UPDATE_INTERVAL,
+                    default=current_lists,
+                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=1440)),
+                vol.Optional(
+                    CONF_USER_FOLDERS_UPDATE_INTERVAL,
+                    default=current_folders,
+                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=1440)),
             }),
         )

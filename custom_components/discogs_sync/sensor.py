@@ -4,7 +4,7 @@ from __future__ import annotations
 import datetime
 from typing import Any, Dict, Optional
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -16,16 +16,16 @@ from .const import (
     UNIT_RECORDS, UNIT_LISTS, UNIT_FOLDERS
 )
 
-# Simplified sensor definitions
+# Sensor definitions with state classes for Google Assistant compatibility
 SENSORS = [
-    ("collection", "Collection", UNIT_RECORDS, ICON_RECORD),
-    ("wantlist", "Wantlist", UNIT_RECORDS, ICON_RECORD), 
-    ("random_record", "Random Record", None, ICON_PLAYER),
-    ("collection_value_min", "Collection Value (Min)", None, ICON_CASH),
-    ("collection_value_median", "Collection Value (Median)", None, ICON_CASH),
-    ("collection_value_max", "Collection Value (Max)", None, ICON_CASH),
-    ("user_lists", "User Lists", UNIT_LISTS, ICON_LIST),
-    ("user_folders", "User Folders", UNIT_FOLDERS, ICON_FOLDER),
+    ("collection", "Collection", UNIT_RECORDS, ICON_RECORD, SensorStateClass.MEASUREMENT),
+    ("wantlist", "Wantlist", UNIT_RECORDS, ICON_RECORD, SensorStateClass.MEASUREMENT), 
+    ("random_record", "Random Record", None, ICON_PLAYER, SensorStateClass.TOTAL),  # State class for GA compatibility
+    ("collection_value_min", "Collection Value (Min)", None, ICON_CASH, SensorStateClass.MEASUREMENT),
+    ("collection_value_median", "Collection Value (Median)", None, ICON_CASH, SensorStateClass.MEASUREMENT),
+    ("collection_value_max", "Collection Value (Max)", None, ICON_CASH, SensorStateClass.MEASUREMENT),
+    ("user_lists", "User Lists", UNIT_LISTS, ICON_LIST, SensorStateClass.MEASUREMENT),
+    ("user_folders", "User Folders", UNIT_FOLDERS, ICON_FOLDER, SensorStateClass.MEASUREMENT),
 ]
 
 
@@ -35,8 +35,8 @@ async def async_setup_entry(
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     entities = [
-        DiscogsSensor(coordinator, sensor_key, name, unit, icon) 
-        for sensor_key, name, unit, icon in SENSORS
+        DiscogsSensor(coordinator, sensor_key, name, unit, icon, state_class) 
+        for sensor_key, name, unit, icon, state_class in SENSORS
     ]
     async_add_entities(entities)
 
@@ -46,14 +46,20 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator, sensor_key: str, name: str, unit: str, icon: str):
+    def __init__(self, coordinator, sensor_key: str, name: str, unit: str, icon: str, state_class: SensorStateClass = None):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._sensor_key = sensor_key
         self._attr_name = name
         self._attr_icon = icon
         self._attr_native_unit_of_measurement = unit
+        self._attr_state_class = state_class
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{sensor_key}"
+        
+        # Set precision for currency values
+        if sensor_key.startswith("collection_value_"):
+            self._attr_suggested_display_precision = 2
+        
         self._attr_device_info = {
             "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
             "name": coordinator.display_name,
