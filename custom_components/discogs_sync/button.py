@@ -18,7 +18,9 @@ ENDPOINTS = {
     "collection": "Collection",
     "wantlist": "Wantlist", 
     "collection_value": "Collection Value",
-    "random_record": "Random Record"
+    "random_record": "Random Record",
+    "user_lists": "User Lists",
+    "user_folders": "User Folders"
 }
 
 
@@ -60,3 +62,4 @@ class DiscogsRefreshButton(CoordinatorEntity, ButtonEntity):
         success = await self.coordinator.manual_refresh_endpoint(self._endpoint)
         if not success:
             _LOGGER.warning("Failed to refresh %s endpoint", self._endpoint)
+

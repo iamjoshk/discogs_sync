@@ -97,7 +97,49 @@ class DiscogsAPIClient:
         url = f"https://api.discogs.com/users/{username}/collection/folders/0"
         data = self._make_request(url)
         return data.get("count") if data else None
-    
+
+    def get_folders(self, username: str) -> Optional[Dict[str, Any]]:
+        """Get folders for a user."""
+        url = f"https://api.discogs.com/users/{username}/collection/folders"
+        data = self._make_request(url)
+        
+        if data and data.get("folders"):
+            folders = data["folders"]
+            return {
+                "count": len(folders),
+                "folders": [
+                    {
+                        "id": folder.get("id"),
+                        "count": folder.get("count"),
+                        "name": folder.get("name"),
+                        "resource_url": folder.get("resource_url")
+                    }
+                    for folder in folders
+                ]
+            }
+        return None
+
+    def get_lists(self, username: str) -> Optional[Dict[str, Any]]:
+        """Get lists for a user."""
+        url = f"https://api.discogs.com/users/{username}/lists"
+        data = self._make_request(url)
+        
+        if data and data.get("lists"):
+            lists = data["lists"]
+            return {
+                "count": len(lists),
+                "lists": [
+                    {
+                        "name": list_item.get("name"),
+                        "id": list_item.get("id"),
+                        "uri": list_item.get("uri"),
+                        "public": list_item.get("public")
+                    }
+                    for list_item in lists
+                ]
+            }
+        return None
+
     def get_wantlist_count(self, username: str) -> Optional[int]:
         """Get wantlist count for a user."""
         url = f"https://api.discogs.com/users/{username}/wants"
@@ -119,10 +161,10 @@ class DiscogsAPIClient:
             }
         return None
     
-    def get_random_record(self, username: str) -> Optional[Dict[str, Any]]:
+    def get_random_record(self, username: str, folder_id: int = 0) -> Optional[Dict[str, Any]]:
         """Get a random record from collection."""
-        # First get total count
-        folder_data = self._make_request(f"https://api.discogs.com/users/{username}/collection/folders/0")
+        # First get total count for the specified folder
+        folder_data = self._make_request(f"https://api.discogs.com/users/{username}/collection/folders/{folder_id}")
         if not folder_data:
             return None
             
@@ -135,7 +177,7 @@ class DiscogsAPIClient:
         total_pages = (total_items + per_page - 1) // per_page
         random_page = random.randint(1, total_pages)
         
-        url = f"https://api.discogs.com/users/{username}/collection/folders/0/releases"
+        url = f"https://api.discogs.com/users/{username}/collection/folders/{folder_id}/releases"
         params = {"page": random_page, "per_page": per_page}
         data = self._make_request(url, params)
         
@@ -162,9 +204,42 @@ class DiscogsAPIClient:
             }
         }
     
-    def get_full_collection(self, username: str) -> List[Dict]:
+    def get_user_list_items(self, username: str, list_id: int) -> List[Dict]:
+        """Fetch items from a specific user list with pagination."""
+        all_items = []
+        page = 1
+        per_page = 100
+        base_url = f"https://api.discogs.com/lists/{list_id}"
+        
+        while True:
+            params = {"page": page, "per_page": per_page}
+            data = self._make_request(base_url, params)
+            
+            if not data:
+                break
+                
+            items = data.get("items", [])
+            if not items:
+                break
+            
+            # For user lists, items might be structured differently than collection/wantlist
+            # Don't assume basic_information exists, return the full item
+            all_items.extend(items)
+            
+            pagination = data.get("pagination", {})
+            if page >= pagination.get("pages", 1):
+                break
+                
+            page += 1
+            
+            _LOGGER.debug("Fetched page %d/%d (%d items)", 
+                         page - 1, pagination.get("pages", 1), len(items))
+        
+        return all_items
+    
+    def get_full_collection(self, username: str, folder_id: int = 0) -> List[Dict]:
         """Fetch full collection with pagination."""
-        return self._paginated_fetch(f"https://api.discogs.com/users/{username}/collection/folders/0/releases", "releases")
+        return self._paginated_fetch(f"https://api.discogs.com/users/{username}/collection/folders/{folder_id}/releases", "releases")
     
     def get_full_wantlist(self, username: str) -> List[Dict]:
         """Fetch full wantlist with pagination."""
@@ -234,3 +309,4 @@ class DiscogsAPIClient:
                 return f"{format_name} ({', '.join(descriptions)})"
             return format_name
         return None
+

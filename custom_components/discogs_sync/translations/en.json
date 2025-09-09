@@ -37,7 +37,9 @@
           "collection_update_interval": "Collection",
           "wantlist_update_interval": "Wantlist", 
           "collection_value_update_interval": "Collection Value",
-          "random_record_update_interval": "Random Record"
+          "random_record_update_interval": "Random Record",
+          "user_lists_update_interval": "User Lists",
+          "user_folders_update_interval": "User Folders"
         }
       }
     }
@@ -55,6 +57,12 @@
       },
       "refresh_random_record": {
         "name": "Refresh Random Record"
+      },
+      "refresh_user_lists": {
+        "name": "Refresh User Lists"
+      },
+      "refresh_user_folders": {
+        "name": "Refresh User Folders"
       }
     },
     "sensor": {
@@ -75,6 +83,12 @@
       },
       "collection_value_max": {
         "name": "Collection Value (Max)"
+      },
+      "user_lists": {
+        "name": "User Lists"
+      },
+      "user_folders": {
+        "name": "User Folders"
       }
     }
   }

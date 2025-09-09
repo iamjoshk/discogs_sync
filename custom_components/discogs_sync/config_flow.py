@@ -7,7 +7,9 @@ from .const import (
     CONF_COLLECTION_UPDATE_INTERVAL, DEFAULT_COLLECTION_UPDATE_INTERVAL,
     CONF_WANTLIST_UPDATE_INTERVAL, DEFAULT_WANTLIST_UPDATE_INTERVAL,
     CONF_COLLECTION_VALUE_UPDATE_INTERVAL, DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL,
-    CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL
+    CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL,
+    CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL,
+    CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL
 )
 
 class DiscogsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -90,6 +92,8 @@ class DiscogsOptionsFlowHandler(config_entries.OptionsFlow):
                 (CONF_WANTLIST_UPDATE_INTERVAL, DEFAULT_WANTLIST_UPDATE_INTERVAL),
                 (CONF_COLLECTION_VALUE_UPDATE_INTERVAL, DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL),
                 (CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL),
+                (CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL),
+                (CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL),
             ]:
                 new_value = user_input.get(key)
                 if new_value is not None and new_value != "":
@@ -105,6 +109,8 @@ class DiscogsOptionsFlowHandler(config_entries.OptionsFlow):
         current_wantlist = self._entry_options.get(CONF_WANTLIST_UPDATE_INTERVAL, DEFAULT_WANTLIST_UPDATE_INTERVAL)
         current_value = self._entry_options.get(CONF_COLLECTION_VALUE_UPDATE_INTERVAL, DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL)
         current_random = self._entry_options.get(CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL)
+        current_lists = self._entry_options.get(CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL)
+        current_folders = self._entry_options.get(CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL)
         
         # Format current intervals display
         def format_interval(interval):
@@ -115,7 +121,9 @@ class DiscogsOptionsFlowHandler(config_entries.OptionsFlow):
             f"Collection: {format_interval(current_collection)}\n"
             f"Wantlist: {format_interval(current_wantlist)}\n"
             f"Collection Value: {format_interval(current_value)}\n"
-            f"Random Record: {format_interval(current_random)}"
+            f"Random Record: {format_interval(current_random)}\n"
+            f"User Lists: {format_interval(current_lists)}\n"
+            f"User Folders: {format_interval(current_folders)}"
         )
 
         # Show interval configuration 
@@ -137,6 +145,14 @@ class DiscogsOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_RANDOM_RECORD_UPDATE_INTERVAL,
                     default=current_random,
+                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=1440)),
+                vol.Optional(
+                    CONF_USER_LISTS_UPDATE_INTERVAL,
+                    default=current_lists,
+                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=1440)),
+                vol.Optional(
+                    CONF_USER_FOLDERS_UPDATE_INTERVAL,
+                    default=current_folders,
                 ): vol.All(vol.Coerce(int), vol.Range(min=0, max=1440)),
             }),
         )
