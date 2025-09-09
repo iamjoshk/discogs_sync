@@ -14,7 +14,9 @@ from .const import (
     CONF_COLLECTION_UPDATE_INTERVAL, DEFAULT_COLLECTION_UPDATE_INTERVAL,
     CONF_WANTLIST_UPDATE_INTERVAL, DEFAULT_WANTLIST_UPDATE_INTERVAL,
     CONF_COLLECTION_VALUE_UPDATE_INTERVAL, DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL,
-    CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL
+    CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL,
+    CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL,
+    CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL
 )
 from .api_client import DiscogsAPIClient
 
@@ -47,7 +49,9 @@ class DiscogsCoordinator(DataUpdateCoordinator):
             "collection": entry.options.get(CONF_COLLECTION_UPDATE_INTERVAL, DEFAULT_COLLECTION_UPDATE_INTERVAL),
             "wantlist": entry.options.get(CONF_WANTLIST_UPDATE_INTERVAL, DEFAULT_WANTLIST_UPDATE_INTERVAL),
             "collection_value": entry.options.get(CONF_COLLECTION_VALUE_UPDATE_INTERVAL, DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL),
-            "random_record": entry.options.get(CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL)
+            "random_record": entry.options.get(CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL),
+            "user_lists": entry.options.get(CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL),
+            "user_folders": entry.options.get(CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL)
         }
         
         _LOGGER.debug("Initialized coordinator with intervals: %s", self._endpoint_intervals)
@@ -71,7 +75,9 @@ class DiscogsCoordinator(DataUpdateCoordinator):
             (CONF_COLLECTION_UPDATE_INTERVAL, DEFAULT_COLLECTION_UPDATE_INTERVAL),
             (CONF_WANTLIST_UPDATE_INTERVAL, DEFAULT_WANTLIST_UPDATE_INTERVAL),
             (CONF_COLLECTION_VALUE_UPDATE_INTERVAL, DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL),
-            (CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL)
+            (CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL),
+            (CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL),
+            (CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL)
         ]:
             interval = entry.options.get(option_key, default)
             if interval > 0:  # Only include enabled endpoints
@@ -81,14 +87,17 @@ class DiscogsCoordinator(DataUpdateCoordinator):
         return timedelta(minutes=max(min_interval, 1))  # At least 1 minute
     
     def update_intervals(self, collection_interval=None, wantlist_interval=None, 
-                        collection_value_interval=None, random_record_interval=None):
+                        collection_value_interval=None, random_record_interval=None,
+                        user_lists_interval=None, user_folders_interval=None):
         """Update the individual endpoint intervals."""
         # Store intervals, allowing 0 to disable endpoints
         self._endpoint_intervals = {
             "collection": collection_interval if collection_interval is not None else DEFAULT_COLLECTION_UPDATE_INTERVAL,
             "wantlist": wantlist_interval if wantlist_interval is not None else DEFAULT_WANTLIST_UPDATE_INTERVAL,
             "collection_value": collection_value_interval if collection_value_interval is not None else DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL,
-            "random_record": random_record_interval if random_record_interval is not None else DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL
+            "random_record": random_record_interval if random_record_interval is not None else DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL,
+            "user_lists": user_lists_interval if user_lists_interval is not None else DEFAULT_USER_LISTS_UPDATE_INTERVAL,
+            "user_folders": user_folders_interval if user_folders_interval is not None else DEFAULT_USER_FOLDERS_UPDATE_INTERVAL
         }
         
         _LOGGER.debug("Updated endpoint intervals: %s", self._endpoint_intervals)
@@ -210,11 +219,11 @@ class DiscogsCoordinator(DataUpdateCoordinator):
         else:
             _LOGGER.debug("Random record updates disabled (interval = 0)")
         
-        # Check user lists (same frequency as collection)
-        collection_interval_minutes = self._endpoint_intervals.get("collection", 10)
-        if collection_interval_minutes > 0:
+        # Check user lists
+        user_lists_interval_minutes = self._endpoint_intervals.get("user_lists", 10)
+        if user_lists_interval_minutes > 0:
             last_lists_update = self._data["last_updated"].get("user_lists", 0)
-            lists_interval = collection_interval_minutes * 60  # Convert to seconds
+            lists_interval = user_lists_interval_minutes * 60  # Convert to seconds
             
             if current_time - last_lists_update > lists_interval:
                 try:
@@ -227,11 +236,14 @@ class DiscogsCoordinator(DataUpdateCoordinator):
                         _LOGGER.debug("Updated user lists: %s lists", lists_data["count"])
                 except Exception as err:
                     _LOGGER.debug("Failed to update user lists: %s", err)
+        else:
+            _LOGGER.debug("User lists updates disabled (interval = 0)")
         
-        # Check user folders (same frequency as collection)
-        if collection_interval_minutes > 0:
+        # Check user folders
+        user_folders_interval_minutes = self._endpoint_intervals.get("user_folders", 10)
+        if user_folders_interval_minutes > 0:
             last_folders_update = self._data["last_updated"].get("user_folders", 0)
-            folders_interval = collection_interval_minutes * 60  # Convert to seconds
+            folders_interval = user_folders_interval_minutes * 60  # Convert to seconds
             
             if current_time - last_folders_update > folders_interval:
                 try:
@@ -244,6 +256,8 @@ class DiscogsCoordinator(DataUpdateCoordinator):
                         _LOGGER.debug("Updated user folders: %s folders", folders_data["count"])
                 except Exception as err:
                     _LOGGER.debug("Failed to update user folders: %s", err)
+        else:
+            _LOGGER.debug("User folders updates disabled (interval = 0)")
     
     async def manual_refresh_endpoint(self, endpoint: str) -> bool:
         """Manually refresh a specific endpoint."""
