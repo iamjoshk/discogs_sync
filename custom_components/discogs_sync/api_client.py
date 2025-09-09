@@ -206,7 +206,36 @@ class DiscogsAPIClient:
     
     def get_user_list_items(self, username: str, list_id: int) -> List[Dict]:
         """Fetch items from a specific user list with pagination."""
-        return self._paginated_fetch(f"https://api.discogs.com/users/{username}/lists/{list_id}", "items")
+        all_items = []
+        page = 1
+        per_page = 100
+        base_url = f"https://api.discogs.com/lists/{list_id}"
+        
+        while True:
+            params = {"page": page, "per_page": per_page}
+            data = self._make_request(base_url, params)
+            
+            if not data:
+                break
+                
+            items = data.get("items", [])
+            if not items:
+                break
+            
+            # For user lists, items might be structured differently than collection/wantlist
+            # Don't assume basic_information exists, return the full item
+            all_items.extend(items)
+            
+            pagination = data.get("pagination", {})
+            if page >= pagination.get("pages", 1):
+                break
+                
+            page += 1
+            
+            _LOGGER.debug("Fetched page %d/%d (%d items)", 
+                         page - 1, pagination.get("pages", 1), len(items))
+        
+        return all_items
     
     def get_full_collection(self, username: str, folder_id: int = 0) -> List[Dict]:
         """Fetch full collection with pagination."""
