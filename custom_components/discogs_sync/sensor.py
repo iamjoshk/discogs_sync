@@ -10,7 +10,11 @@ from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
 
-from .const import DOMAIN, UNIT_RECORDS, ICON_RECORD, ICON_PLAYER, ICON_CASH
+from .const import (
+    DOMAIN, 
+    ICON_RECORD, ICON_PLAYER, ICON_CASH, ICON_LIST, ICON_FOLDER,
+    UNIT_RECORDS, UNIT_LISTS, UNIT_FOLDERS
+)
 
 # Simplified sensor definitions
 SENSORS = [
@@ -20,6 +24,8 @@ SENSORS = [
     ("collection_value_min", "Collection Value (Min)", None, ICON_CASH),
     ("collection_value_median", "Collection Value (Median)", None, ICON_CASH),
     ("collection_value_max", "Collection Value (Max)", None, ICON_CASH),
+    ("user_lists", "User Lists", UNIT_LISTS, ICON_LIST),
+    ("user_folders", "User Folders", UNIT_FOLDERS, ICON_FOLDER),
 ]
 
 
@@ -72,6 +78,10 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
             return data.get("collection_value", {}).get("median")
         elif self._sensor_key == "collection_value_max":
             return data.get("collection_value", {}).get("max")
+        elif self._sensor_key == "user_lists":
+            return data.get("user_lists", {}).get("count", 0)
+        elif self._sensor_key == "user_folders":
+            return data.get("user_folders", {}).get("count", 0)
         
         return None
 
@@ -97,6 +107,20 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
         if self._sensor_key == "random_record":
             record_data = self.coordinator.data.get("random_record", {}).get("data", {})
             attrs.update(record_data)
+        elif self._sensor_key == "user_lists":
+            lists_data = self.coordinator.data.get("user_lists", {}).get("lists", [])
+            for i, list_item in enumerate(lists_data):
+                attrs[f"list_{i+1}_name"] = list_item.get("name")
+                attrs[f"list_{i+1}_id"] = list_item.get("id")
+                attrs[f"list_{i+1}_uri"] = list_item.get("uri")
+                attrs[f"list_{i+1}_public"] = list_item.get("public")
+        elif self._sensor_key == "user_folders":
+            folders_data = self.coordinator.data.get("user_folders", {}).get("folders", [])
+            for i, folder in enumerate(folders_data):
+                attrs[f"folder_{i+1}_id"] = folder.get("id")
+                attrs[f"folder_{i+1}_count"] = folder.get("count")
+                attrs[f"folder_{i+1}_name"] = folder.get("name")
+                attrs[f"folder_{i+1}_resource_url"] = folder.get("resource_url")
         
         # Add last updated timestamp
         last_updated_key = self._get_last_updated_key()
@@ -116,5 +140,7 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
             "collection_value_min": "collection_value",
             "collection_value_median": "collection_value", 
             "collection_value_max": "collection_value",
+            "user_lists": "user_lists",
+            "user_folders": "user_folders",
         }
         return mapping.get(self._sensor_key)

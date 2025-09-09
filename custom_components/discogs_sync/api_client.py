@@ -97,7 +97,49 @@ class DiscogsAPIClient:
         url = f"https://api.discogs.com/users/{username}/collection/folders/0"
         data = self._make_request(url)
         return data.get("count") if data else None
-    
+
+    def get_folders(self, username: str) -> Optional[Dict[str, Any]]:
+        """Get folders for a user."""
+        url = f"https://api.discogs.com/users/{username}/collection/folders"
+        data = self._make_request(url)
+        
+        if data and data.get("folders"):
+            folders = data["folders"]
+            return {
+                "count": len(folders),
+                "folders": [
+                    {
+                        "id": folder.get("id"),
+                        "count": folder.get("count"),
+                        "name": folder.get("name"),
+                        "resource_url": folder.get("resource_url")
+                    }
+                    for folder in folders
+                ]
+            }
+        return None
+
+    def get_lists(self, username: str) -> Optional[Dict[str, Any]]:
+        """Get lists for a user."""
+        url = f"https://api.discogs.com/users/{username}/lists"
+        data = self._make_request(url)
+        
+        if data and data.get("lists"):
+            lists = data["lists"]
+            return {
+                "count": len(lists),
+                "lists": [
+                    {
+                        "name": list_item.get("name"),
+                        "id": list_item.get("id"),
+                        "uri": list_item.get("uri"),
+                        "public": list_item.get("public")
+                    }
+                    for list_item in lists
+                ]
+            }
+        return None
+
     def get_wantlist_count(self, username: str) -> Optional[int]:
         """Get wantlist count for a user."""
         url = f"https://api.discogs.com/users/{username}/wants"

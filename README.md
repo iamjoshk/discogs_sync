@@ -15,7 +15,9 @@ This integration brings your full [Discogs](https://www.discogs.com) collection 
 - Wantlist count sensor
 - Collection value sensors (minimum, median, maximum)
 - Random record sensor with details and artwork
-- Buttons to refresh each data for each API endpoint
+- User lists sensor with list details
+- User folders sensor with folder details
+- Buttons to refresh data for each API endpoint
 - Actions that return collection and wantlist data for use in dashboards
 - Rate limit monitor
 - Support for flex-table-card integration
@@ -71,8 +73,11 @@ During integration set up, and later using the settings gear in the integration,
 + Collection sensor: A sensor that counts the number of releases in your collection folder.
 + Collection Value sensors: 3 sensors that report the minimum, median, and maximum value of your collection based on Discogs sales.
 + Wantlist sensor: A sensor that counts the number of releases in your wantlist.
++ User Lists sensor: A sensor that counts the number of lists in your account. Attributes include name, id, uri, and public status for each list.
++ User Folders sensor: A sensor that counts the number of collection folders in your account. Attributes include id, count, name, and resource_url for each folder.
++ Random Record sensor: A sensor that displays a random record from your collection with details and artwork.
 + Rate Limit binary sensor: Turns on if the Discogs API rate limit has been hit. Attributes include the number of calls in the last minute.
-+ Refresh buttons: Individual buttons to manually refresh your collection, collection value, and wantlist sensors.
++ Refresh buttons: Individual buttons to manually refresh data for each endpoint (collection, wantlist, collection value, random record, user lists, and user folders).
 
 ## Available Actions
 

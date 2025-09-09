@@ -37,6 +37,8 @@ class DiscogsCoordinator(DataUpdateCoordinator):
             "wantlist_count": 0,
             "collection_value": {"min": 0, "median": 0, "max": 0, "currency": "$"},
             "random_record": {"title": None, "data": {}},
+            "user_lists": {"count": 0, "lists": []},
+            "user_folders": {"count": 0, "folders": []},
             "last_updated": {}
         }
         
@@ -207,6 +209,41 @@ class DiscogsCoordinator(DataUpdateCoordinator):
                     _LOGGER.debug("Failed to update random record: %s", err)
         else:
             _LOGGER.debug("Random record updates disabled (interval = 0)")
+        
+        # Check user lists (same frequency as collection)
+        collection_interval_minutes = self._endpoint_intervals.get("collection", 10)
+        if collection_interval_minutes > 0:
+            last_lists_update = self._data["last_updated"].get("user_lists", 0)
+            lists_interval = collection_interval_minutes * 60  # Convert to seconds
+            
+            if current_time - last_lists_update > lists_interval:
+                try:
+                    lists_data = await self.hass.async_add_executor_job(
+                        self.api_client.get_lists, username
+                    )
+                    if lists_data:
+                        self._data["user_lists"] = lists_data
+                        self._data["last_updated"]["user_lists"] = current_time
+                        _LOGGER.debug("Updated user lists: %s lists", lists_data["count"])
+                except Exception as err:
+                    _LOGGER.debug("Failed to update user lists: %s", err)
+        
+        # Check user folders (same frequency as collection)
+        if collection_interval_minutes > 0:
+            last_folders_update = self._data["last_updated"].get("user_folders", 0)
+            folders_interval = collection_interval_minutes * 60  # Convert to seconds
+            
+            if current_time - last_folders_update > folders_interval:
+                try:
+                    folders_data = await self.hass.async_add_executor_job(
+                        self.api_client.get_folders, username
+                    )
+                    if folders_data:
+                        self._data["user_folders"] = folders_data
+                        self._data["last_updated"]["user_folders"] = current_time
+                        _LOGGER.debug("Updated user folders: %s folders", folders_data["count"])
+                except Exception as err:
+                    _LOGGER.debug("Failed to update user folders: %s", err)
     
     async def manual_refresh_endpoint(self, endpoint: str) -> bool:
         """Manually refresh a specific endpoint."""
@@ -252,6 +289,26 @@ class DiscogsCoordinator(DataUpdateCoordinator):
                 if random_data:
                     self._data["random_record"] = random_data
                     self._data["last_updated"]["random_record"] = time.time()
+                    self.async_update_listeners()
+                    return True
+            
+            elif endpoint == "user_lists":
+                lists_data = await self.hass.async_add_executor_job(
+                    self.api_client.get_lists, username
+                )
+                if lists_data:
+                    self._data["user_lists"] = lists_data
+                    self._data["last_updated"]["user_lists"] = time.time()
+                    self.async_update_listeners()
+                    return True
+            
+            elif endpoint == "user_folders":
+                folders_data = await self.hass.async_add_executor_job(
+                    self.api_client.get_folders, username
+                )
+                if folders_data:
+                    self._data["user_folders"] = folders_data
+                    self._data["last_updated"]["user_folders"] = time.time()
                     self.async_update_listeners()
                     return True
             

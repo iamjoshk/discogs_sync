@@ -20,7 +20,11 @@ DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL = 30
 DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL = 240
 
 # Attributes
-UNIT_RECORDS = "records"
+UNIT_RECORDS = "releases"
+UNIT_LISTS = "lists"
+UNIT_FOLDERS = "folders"
 ICON_RECORD = "mdi:album"
 ICON_PLAYER = "mdi:record-player"
 ICON_CASH = "mdi:cash"
+ICON_LIST = "mdi:format-list-bulleted"
+ICON_FOLDER = "mdi:folder-multiple"
