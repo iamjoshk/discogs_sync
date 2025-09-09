@@ -12,7 +12,7 @@ _LOGGER = logging.getLogger(__name__)
 
 # Simple rate limiting for services
 _last_service_calls = {}
-_min_service_interval = timedelta(seconds=10)
+_min_service_interval = timedelta(seconds=1)
 
 
 async def async_register_services(hass: HomeAssistant) -> None:
@@ -73,7 +73,9 @@ async def _handle_download_service(
     try:
         # Get data based on service type
         if service_type == "collection":
-            data = await coordinator.get_full_collection()
+            # Get folder_id from service call data (defaults to 0 for "All")
+            folder_id = call.data.get("folder_id", 0)
+            data = await coordinator.get_full_collection(folder_id)
         elif service_type == "wantlist":
             data = await coordinator.get_full_wantlist()
         else:

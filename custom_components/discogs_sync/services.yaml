@@ -14,6 +14,15 @@ download_collection:
       default: false
       selector:
         boolean:
+    folder_id:
+      name: Folder ID
+      description: "The ID of the specific folder to download (0 for All, or specific folder ID)."
+      default: 0
+      example: 0
+      selector:
+        number:
+          min: 0
+          mode: box
 
 download_wantlist:
   name: Download Wantlist

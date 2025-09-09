@@ -9,13 +9,14 @@ from .const import (
     DOMAIN, DEFAULT_NAME,
     CONF_ENABLE_SCHEDULED_UPDATES,
     CONF_COLLECTION_UPDATE_INTERVAL, CONF_WANTLIST_UPDATE_INTERVAL,
-    CONF_COLLECTION_VALUE_UPDATE_INTERVAL, CONF_RANDOM_RECORD_UPDATE_INTERVAL
+    CONF_COLLECTION_VALUE_UPDATE_INTERVAL, CONF_RANDOM_RECORD_UPDATE_INTERVAL,
+    CONF_USER_LISTS_UPDATE_INTERVAL, CONF_USER_FOLDERS_UPDATE_INTERVAL
 )
 from .coordinator import DiscogsCoordinator
 from .services import async_register_services
 
 _LOGGER = logging.getLogger(__name__)
-PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.BUTTON]
+PLATFORMS = [Platform.SENSOR, Platform.BINARY_SENSOR, Platform.BUTTON, Platform.SELECT]
 
 
 async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry):
@@ -68,14 +69,18 @@ async def async_options_updated(hass: HomeAssistant, entry: ConfigEntry):
     wantlist_interval = entry.options.get(CONF_WANTLIST_UPDATE_INTERVAL) 
     collection_value_interval = entry.options.get(CONF_COLLECTION_VALUE_UPDATE_INTERVAL)
     random_record_interval = entry.options.get(CONF_RANDOM_RECORD_UPDATE_INTERVAL)
+    user_lists_interval = entry.options.get(CONF_USER_LISTS_UPDATE_INTERVAL)
+    user_folders_interval = entry.options.get(CONF_USER_FOLDERS_UPDATE_INTERVAL)
     
     # Log interval values
     _LOGGER.debug(
-        "Update intervals: collection=%s, wantlist=%s, value=%s, random=%s",
+        "Update intervals: collection=%s, wantlist=%s, value=%s, random=%s, lists=%s, folders=%s",
         collection_interval,
         wantlist_interval,
         collection_value_interval,
-        random_record_interval
+        random_record_interval,
+        user_lists_interval,
+        user_folders_interval
     )
     
     # Update the coordinator's configuration with the new interval settings
@@ -83,7 +88,9 @@ async def async_options_updated(hass: HomeAssistant, entry: ConfigEntry):
         collection_interval=collection_interval,
         wantlist_interval=wantlist_interval,
         collection_value_interval=collection_value_interval,
-        random_record_interval=random_record_interval
+        random_record_interval=random_record_interval,
+        user_lists_interval=user_lists_interval,
+        user_folders_interval=user_folders_interval
     )
     
     # Update the coordinator's update interval to use the shortest configured interval

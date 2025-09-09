@@ -41,6 +41,8 @@ class DiscogsCoordinator(DataUpdateCoordinator):
             "random_record": {"title": None, "data": {}},
             "user_lists": {"count": 0, "lists": []},
             "user_folders": {"count": 0, "folders": []},
+            "random_record_folder_selection": "All",  # Default folder selection
+            "random_record_folder_id": 0,  # Default to "All" folder (ID 0)
             "last_updated": {}
         }
         
@@ -207,13 +209,14 @@ class DiscogsCoordinator(DataUpdateCoordinator):
             
             if current_time - last_random_update > random_interval:
                 try:
+                    folder_id = self._data.get("random_record_folder_id", 0)
                     random_data = await self.hass.async_add_executor_job(
-                        self.api_client.get_random_record, username
+                        self.api_client.get_random_record, username, folder_id
                     )
                     if random_data:
                         self._data["random_record"] = random_data
                         self._data["last_updated"]["random_record"] = current_time
-                        _LOGGER.debug("Updated random record")
+                        _LOGGER.debug("Updated random record from folder ID %s", folder_id)
                 except Exception as err:
                     _LOGGER.debug("Failed to update random record: %s", err)
         else:
@@ -297,8 +300,9 @@ class DiscogsCoordinator(DataUpdateCoordinator):
                     return True
             
             elif endpoint == "random_record":
+                folder_id = self._data.get("random_record_folder_id", 0)
                 random_data = await self.hass.async_add_executor_job(
-                    self.api_client.get_random_record, username
+                    self.api_client.get_random_record, username, folder_id
                 )
                 if random_data:
                     self._data["random_record"] = random_data
@@ -335,14 +339,14 @@ class DiscogsCoordinator(DataUpdateCoordinator):
         """Get rate limit information."""
         return self.api_client.rate_limit_info
     
-    async def get_full_collection(self) -> list:
+    async def get_full_collection(self, folder_id: int = 0) -> list:
         """Get full collection data."""
         username = self._data.get("user")
         if not username or username == "Unknown":
             return []
         
         return await self.hass.async_add_executor_job(
-            self.api_client.get_full_collection, username
+            self.api_client.get_full_collection, username, folder_id
         )
     
     async def get_full_wantlist(self) -> list:
