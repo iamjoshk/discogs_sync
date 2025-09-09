@@ -83,6 +83,16 @@ class DiscogsRandomRecordFolderSelect(CoordinatorEntity, SelectEntity):
         # Store the folder ID as well
         self.coordinator.data["random_record_folder_id"] = selected_folder_id
         
+        # Persist the selection to config entry data for restoration after restart
+        new_data = dict(self.coordinator.config_entry.data)
+        new_data["random_record_folder_selection"] = option
+        new_data["random_record_folder_id"] = selected_folder_id
+        
+        self.hass.config_entries.async_update_entry(
+            self.coordinator.config_entry, 
+            data=new_data
+        )
+        
         # Trigger an update of listeners
         self.coordinator.async_update_listeners()
     

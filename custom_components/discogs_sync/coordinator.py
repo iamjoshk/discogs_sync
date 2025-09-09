@@ -41,8 +41,8 @@ class DiscogsCoordinator(DataUpdateCoordinator):
             "random_record": {"title": None, "data": {}},
             "user_lists": {"count": 0, "lists": []},
             "user_folders": {"count": 0, "folders": []},
-            "random_record_folder_selection": "All",  # Default folder selection
-            "random_record_folder_id": 0,  # Default to "All" folder (ID 0)
+            "random_record_folder_selection": entry.data.get("random_record_folder_selection", "All"),  # Restore from config entry
+            "random_record_folder_id": entry.data.get("random_record_folder_id", 0),  # Restore from config entry
             "last_updated": {}
         }
         
