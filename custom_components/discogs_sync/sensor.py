@@ -6,6 +6,7 @@ from typing import Any, Dict, Optional
 
 from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
+from homeassistant.helpers.entity import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
@@ -20,7 +21,7 @@ from .const import (
 SENSORS = [
     ("collection", "Collection", UNIT_RECORDS, ICON_RECORD, SensorStateClass.MEASUREMENT),
     ("wantlist", "Wantlist", UNIT_RECORDS, ICON_RECORD, SensorStateClass.MEASUREMENT), 
-    ("random_record", "Random Record", None, ICON_PLAYER, SensorStateClass.TOTAL),  # State class for GA compatibility
+    ("random_record", "Random Record", None, ICON_PLAYER, None),  # No state class for text values
     ("collection_value_min", "Collection Value (Min)", None, ICON_CASH, SensorStateClass.MEASUREMENT),
     ("collection_value_median", "Collection Value (Median)", None, ICON_CASH, SensorStateClass.MEASUREMENT),
     ("collection_value_max", "Collection Value (Max)", None, ICON_CASH, SensorStateClass.MEASUREMENT),
@@ -59,6 +60,11 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
         # Set precision for currency values
         if sensor_key.startswith("collection_value_"):
             self._attr_suggested_display_precision = 2
+        
+        # Don't set entity_category so main sensors can be exposed to Google Assistant
+        # Random record is diagnostic since it's not useful for voice queries
+        if sensor_key == "random_record":
+            self._attr_entity_category = EntityCategory.DIAGNOSTIC
         
         self._attr_device_info = {
             "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
@@ -115,18 +121,32 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
             attrs.update(record_data)
         elif self._sensor_key == "user_lists":
             lists_data = self.coordinator.data.get("user_lists", {}).get("lists", [])
-            for i, list_item in enumerate(lists_data):
-                attrs[f"list_{i+1}_name"] = list_item.get("name")
-                attrs[f"list_{i+1}_id"] = list_item.get("id")
-                attrs[f"list_{i+1}_uri"] = list_item.get("uri")
-                attrs[f"list_{i+1}_public"] = list_item.get("public")
+            if lists_data:
+                attrs["lists"] = [
+                    {
+                        list_item.get("id", i): {
+                            "id": list_item.get("id"),
+                            "name": list_item.get("name"),
+                            "uri": list_item.get("uri"),
+                            "public": list_item.get("public")
+                        }
+                    }
+                    for i, list_item in enumerate(lists_data)
+                ]
         elif self._sensor_key == "user_folders":
             folders_data = self.coordinator.data.get("user_folders", {}).get("folders", [])
-            for i, folder in enumerate(folders_data):
-                attrs[f"folder_{i+1}_id"] = folder.get("id")
-                attrs[f"folder_{i+1}_count"] = folder.get("count")
-                attrs[f"folder_{i+1}_name"] = folder.get("name")
-                attrs[f"folder_{i+1}_resource_url"] = folder.get("resource_url")
+            if folders_data:
+                attrs["folders"] = [
+                    {
+                        folder.get("id", i): {
+                            "id": folder.get("id"),
+                            "count": folder.get("count"),
+                            "name": folder.get("name"),
+                            "resource_url": folder.get("resource_url")
+                        }
+                    }
+                    for i, folder in enumerate(folders_data)
+                ]
         
         # Add last updated timestamp
         last_updated_key = self._get_last_updated_key()
