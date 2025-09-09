@@ -276,3 +276,4 @@ class DiscogsAPIClient:
                 return f"{format_name} ({', '.join(descriptions)})"
             return format_name
         return None
+

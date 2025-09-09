@@ -354,3 +354,4 @@ class DiscogsCoordinator(DataUpdateCoordinator):
         return await self.hass.async_add_executor_job(
             self.api_client.get_full_wantlist, username
         )
+

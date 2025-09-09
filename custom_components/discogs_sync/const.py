@@ -32,3 +32,4 @@ ICON_PLAYER = "mdi:record-player"
 ICON_CASH = "mdi:cash"
 ICON_LIST = "mdi:format-list-bulleted"
 ICON_FOLDER = "mdi:folder-multiple"
+

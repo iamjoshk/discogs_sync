@@ -4,9 +4,8 @@ from __future__ import annotations
 import datetime
 from typing import Any, Dict, Optional
 
-from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.components.sensor import SensorEntity
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
-from homeassistant.helpers.entity import EntityCategory
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
 from homeassistant.config_entries import ConfigEntry
@@ -17,16 +16,16 @@ from .const import (
     UNIT_RECORDS, UNIT_LISTS, UNIT_FOLDERS
 )
 
-# Sensor definitions with state classes for proper Home Assistant functionality
+# Simplified sensor definitions
 SENSORS = [
-    ("collection", "Collection", UNIT_RECORDS, ICON_RECORD, SensorStateClass.MEASUREMENT),
-    ("wantlist", "Wantlist", UNIT_RECORDS, ICON_RECORD, SensorStateClass.MEASUREMENT), 
-    ("random_record", "Random Record", None, ICON_PLAYER, None),  # No state class for text values
-    ("collection_value_min", "Collection Value (Min)", None, ICON_CASH, SensorStateClass.MEASUREMENT),
-    ("collection_value_median", "Collection Value (Median)", None, ICON_CASH, SensorStateClass.MEASUREMENT),
-    ("collection_value_max", "Collection Value (Max)", None, ICON_CASH, SensorStateClass.MEASUREMENT),
-    ("user_lists", "User Lists", UNIT_LISTS, ICON_LIST, SensorStateClass.MEASUREMENT),
-    ("user_folders", "User Folders", UNIT_FOLDERS, ICON_FOLDER, SensorStateClass.MEASUREMENT),
+    ("collection", "Collection", UNIT_RECORDS, ICON_RECORD),
+    ("wantlist", "Wantlist", UNIT_RECORDS, ICON_RECORD), 
+    ("random_record", "Random Record", None, ICON_PLAYER),
+    ("collection_value_min", "Collection Value (Min)", None, ICON_CASH),
+    ("collection_value_median", "Collection Value (Median)", None, ICON_CASH),
+    ("collection_value_max", "Collection Value (Max)", None, ICON_CASH),
+    ("user_lists", "User Lists", UNIT_LISTS, ICON_LIST),
+    ("user_folders", "User Folders", UNIT_FOLDERS, ICON_FOLDER),
 ]
 
 
@@ -36,8 +35,8 @@ async def async_setup_entry(
     """Set up the sensor platform."""
     coordinator = hass.data[DOMAIN][entry.entry_id]
     entities = [
-        DiscogsSensor(coordinator, sensor_key, name, unit, icon, state_class) 
-        for sensor_key, name, unit, icon, state_class in SENSORS
+        DiscogsSensor(coordinator, sensor_key, name, unit, icon) 
+        for sensor_key, name, unit, icon in SENSORS
     ]
     async_add_entities(entities)
 
@@ -47,20 +46,14 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
 
     _attr_has_entity_name = True
 
-    def __init__(self, coordinator, sensor_key: str, name: str, unit: str, icon: str, state_class: SensorStateClass = None):
+    def __init__(self, coordinator, sensor_key: str, name: str, unit: str, icon: str):
         """Initialize the sensor."""
         super().__init__(coordinator)
         self._sensor_key = sensor_key
         self._attr_name = name
         self._attr_icon = icon
         self._attr_native_unit_of_measurement = unit
-        self._attr_state_class = state_class
         self._attr_unique_id = f"{coordinator.config_entry.entry_id}_{sensor_key}"
-        
-        # Set precision for currency values
-        if sensor_key.startswith("collection_value_"):
-            self._attr_suggested_display_precision = 2
-        
         self._attr_device_info = {
             "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
             "name": coordinator.display_name,
@@ -116,32 +109,18 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
             attrs.update(record_data)
         elif self._sensor_key == "user_lists":
             lists_data = self.coordinator.data.get("user_lists", {}).get("lists", [])
-            if lists_data:
-                attrs["lists"] = [
-                    {
-                        list_item.get("id", i): {
-                            "id": list_item.get("id"),
-                            "name": list_item.get("name"),
-                            "uri": list_item.get("uri"),
-                            "public": list_item.get("public")
-                        }
-                    }
-                    for i, list_item in enumerate(lists_data)
-                ]
+            for i, list_item in enumerate(lists_data):
+                attrs[f"list_{i+1}_name"] = list_item.get("name")
+                attrs[f"list_{i+1}_id"] = list_item.get("id")
+                attrs[f"list_{i+1}_uri"] = list_item.get("uri")
+                attrs[f"list_{i+1}_public"] = list_item.get("public")
         elif self._sensor_key == "user_folders":
             folders_data = self.coordinator.data.get("user_folders", {}).get("folders", [])
-            if folders_data:
-                attrs["folders"] = [
-                    {
-                        folder.get("id", i): {
-                            "id": folder.get("id"),
-                            "count": folder.get("count"),
-                            "name": folder.get("name"),
-                            "resource_url": folder.get("resource_url")
-                        }
-                    }
-                    for i, folder in enumerate(folders_data)
-                ]
+            for i, folder in enumerate(folders_data):
+                attrs[f"folder_{i+1}_id"] = folder.get("id")
+                attrs[f"folder_{i+1}_count"] = folder.get("count")
+                attrs[f"folder_{i+1}_name"] = folder.get("name")
+                attrs[f"folder_{i+1}_resource_url"] = folder.get("resource_url")
         
         # Add last updated timestamp
         last_updated_key = self._get_last_updated_key()

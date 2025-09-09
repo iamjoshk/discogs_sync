@@ -62,3 +62,4 @@ class DiscogsRefreshButton(CoordinatorEntity, ButtonEntity):
         success = await self.coordinator.manual_refresh_endpoint(self._endpoint)
         if not success:
             _LOGGER.warning("Failed to refresh %s endpoint", self._endpoint)
+
