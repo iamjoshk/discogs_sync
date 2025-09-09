@@ -15,10 +15,11 @@ This integration brings your full [Discogs](https://www.discogs.com) collection 
 - Wantlist count sensor
 - Collection value sensors (minimum, median, maximum)
 - Random record sensor with details and artwork
-- User lists sensor with list details
-- User folders sensor with folder details
+- Configurable folder selection for random record
+- User lists sensor with list details in attributes
+- User folders sensor with folder details in attributes
 - Buttons to refresh data for each API endpoint
-- Actions that return collection and wantlist data for use in dashboards
+- Actions that return collection, wantlist, and user lists data for use in dashboards
 - Rate limit monitor
 - Support for flex-table-card integration
 
@@ -66,9 +67,9 @@ To get your Discogs API token:
 
 ### Integration Settings
 
-During integration set up, and later using the settings gear in the integration, you can set the update interval individually for the collection, waitlist, random record, and collection values. These intervals are in minutes. If you disable the automatic updates, then you can use automations to press the refresh buttons and refresh data from each endpoint at any interval you decide. You can also always press the buttons for an on-demand update even with automatic updates enabled.
+During integration set up, and later using the settings gear in the integration, you can set the update interval individually for the collection, waitlist, random record, collection values, folders, and lists entities. These intervals are in minutes. If you disable the automatic updates, then you can use automations to press the refresh buttons and refresh data from each endpoint at any interval you decide. You can also always press the buttons for an on-demand update even with automatic updates enabled.
 
-## Sensors Created
+## Entities Created
 
 + Collection sensor: A sensor that counts the number of releases in your collection folder.
 + Collection Value sensors: 3 sensors that report the minimum, median, and maximum value of your collection based on Discogs sales.
@@ -76,6 +77,7 @@ During integration set up, and later using the settings gear in the integration,
 + User Lists sensor: A sensor that counts the number of lists in your account. Attributes include name, id, uri, and public status for each list.
 + User Folders sensor: A sensor that counts the number of collection folders in your account. Attributes include id, count, name, and resource_url for each folder.
 + Random Record sensor: A sensor that displays a random record from your collection with details and artwork.
++ Random Record Folder input select: a dropdown that lets you choose which folder to use for your random record sensor
 + Rate Limit binary sensor: Turns on if the Discogs API rate limit has been hit. Attributes include the number of calls in the last minute.
 + Refresh buttons: Individual buttons to manually refresh data for each endpoint (collection, wantlist, collection value, random record, user lists, and user folders).
 
@@ -93,9 +95,10 @@ This action fetches your complete Discogs collection and can optionally save it 
 Parameters:
 - `path` (optional): Path to save the collection file (default: `discogs_collection.json` in config folder)
 - `download` (optional): Whether to save to file (default: `false`)
+- `folder_id` (optional): Specify the folder id to download releases from (default: `0` which is the Discogs-created `All` folder)
 
 Returns:
-- Your complete collection data
+- Your complete collection data from the `All` folder (or specific folder if defined in the parameters)
 
 Example response: 
 ```
@@ -375,9 +378,23 @@ wantlist:
       - Blues Rock
 ```
 
+### Download User List Action - discogs_sync.download_user_list
+
+This action fetches a specified user list and can optionally save it to a JSON file.
+
+Parameters:
+- list_id (required): list ID to download
+- `path` (optional): Path to save the collection file (default: `discogs_user_list.json` in config folder)
+- `download` (optional): Whether to save to file (default: `false`)
+
+Returns:
+- The complete user list data
+
+> Note: The lists that can be queried are not limited to your lists; however, private lists are only returned when your API call is authenticated as the owner. So you can return your own private lists and any public lists as long as you know the list ID. For a public list, the list ID is the number in the URL of the list on Discogs. For example: `https://www.discogs.com/lists/Album-covers-with-cats/1593344` the list id is `1593344`. Many lists are VERY long, so it may take some time to return the response. Be careful what you do with the data!
+
 ## Using with flex-table-card
 
-The `download_collection` and `download_wantlist` actions can be used to populate a [flex-table-card](https://github.com/custom-cards/flex-table-card) to display your entire collection or wantlist. First, install the flex-table-card from HACS.
+The `download_collection`, `download_wantlist`, and `download_user_list` actions can be used to populate a [flex-table-card](https://github.com/custom-cards/flex-table-card) to display your collection, wantlist, or a user list. First, install the flex-table-card from HACS.
 
 You can run the action directly in the card OR as a script in the card. Using the action directly, you need `entities` to be empty. The advantage to using a script is auto-refreshing the card data.
 
@@ -416,7 +433,7 @@ columns:
 
 As a script:
 
-Using `entity_id` in the variable lets the entity from flex-table-card be used for the script. This is an important part of the auto-refresh.
+As a script in the card, you can auto-refresh the data. Using `entity_id` in the variable lets the entity from flex-table-card be used for the script. This is an important part of the auto-refresh.
 
 Script:
 ```
