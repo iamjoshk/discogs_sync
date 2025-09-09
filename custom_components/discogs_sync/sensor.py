@@ -109,18 +109,27 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
             attrs.update(record_data)
         elif self._sensor_key == "user_lists":
             lists_data = self.coordinator.data.get("user_lists", {}).get("lists", [])
-            for i, list_item in enumerate(lists_data):
-                attrs[f"list_{i+1}_name"] = list_item.get("name")
-                attrs[f"list_{i+1}_id"] = list_item.get("id")
-                attrs[f"list_{i+1}_uri"] = list_item.get("uri")
-                attrs[f"list_{i+1}_public"] = list_item.get("public")
+            if lists_data:
+                attrs["lists"] = {}
+                for list_item in lists_data:
+                    list_name = list_item.get("name", "Unknown List")
+                    attrs["lists"][list_name] = {
+                        "id": list_item.get("id"),
+                        "uri": list_item.get("uri"),
+                        "public": list_item.get("public")
+                    }
         elif self._sensor_key == "user_folders":
             folders_data = self.coordinator.data.get("user_folders", {}).get("folders", [])
-            for i, folder in enumerate(folders_data):
-                attrs[f"folder_{i+1}_id"] = folder.get("id")
-                attrs[f"folder_{i+1}_count"] = folder.get("count")
-                attrs[f"folder_{i+1}_name"] = folder.get("name")
-                attrs[f"folder_{i+1}_resource_url"] = folder.get("resource_url")
+            if folders_data:
+                attrs["folders"] = {}
+                for folder in folders_data:
+                    folder_name = folder.get("name", "Unknown Folder")
+                    attrs["folders"][folder_name] = {
+                        "id": folder.get("id"),
+                        "count": folder.get("count"),
+                        "name": folder.get("name"),
+                        "resource_url": folder.get("resource_url")
+                    }
         
         # Add last updated timestamp
         last_updated_key = self._get_last_updated_key()
