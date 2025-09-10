@@ -7,7 +7,7 @@
 [![hacs_badge](https://img.shields.io/badge/HACS-Custom-orange.svg)](https://github.com/custom-components/hacs)
 [![GitHub release (latest by date)](https://img.shields.io/github/v/release/iamjoshk/discogs_sync)](https://github.com/iamjoshk/discogs_sync/releases)
 
-This integration brings your full [Discogs](https://www.discogs.com) collection into Home Assistant, expanding on the legacy core Discogs integration. It provides sensors for collection size, wantlist size, collection value, and a random record feature. It also includes an action that can fetch your entire collection and make it available for display using cards like flex-table-card or downloaded as a JSON file.
+This integration brings your full [Discogs](https://www.discogs.com) collection into Home Assistant, expanding on the legacy core Discogs integration. It provides sensors for collection size, wantlist size, collection value, random record with configurable folder, folders list, and user lists. It also includes actions that can fetch your entire collection, wantlist, or user lists and make them available for display using cards like flex-table-card or downloaded as a JSON file.
 
 ## Features
 
@@ -15,7 +15,7 @@ This integration brings your full [Discogs](https://www.discogs.com) collection 
 - Wantlist count sensor
 - Collection value sensors (minimum, median, maximum)
 - Random record sensor with details and artwork
-- Configurable folder selection for random record
+- Configurable folder selection for the random record
 - User lists sensor with list details in attributes
 - User folders sensor with folder details in attributes
 - Buttons to refresh data for each API endpoint
@@ -83,7 +83,7 @@ During integration set up, and later using the settings gear in the integration,
 
 ## Available Actions
 
-Note: the data returned even for small collections will exceed the limit (65535 characters) of entity attributes, so the action responses are returned as responses only with an option to download the response as a JSON file. The responses will NOT be saved to an entity.
+Note: the data returned even for small collections will exceed the system limit (65535 characters) for entity attributes, so the download collection, wantlist, and user list action responses are returned as responses only with an option to download the response as a JSON file. The responses will NOT be saved to an entity.
 
 
 The response can be used as a variable in a script or automation.
@@ -529,19 +529,18 @@ text_only: true
 - The integration tries to respect [Discogs' API rate limits](https://www.discogs.com/developers/#page:home,header:home-rate-limiting) by adding delays between API calls (60 requests per minute for authenticated calls).
 - When using the download actions with large collections or wantlists, it may take some time to complete.
 - A binary sensor is created to monitor rate limit status. 
-- The actions can only be called once every 10 seconds to try and reduce rate limit restrictions.
+- The actions can only be called once every second to try and reduce rate limit restrictions.
 
 ## Troubleshooting
 
 - If you see "Rate limit exceeded" warnings, wait 60 seconds before making another request
 - The rate limit binary sensor will show "Problem" when rate limits are exceeded and includes information about remaining limits in the attributes.
-- Make sure your Discogs token has the proper permissions
-- Editing flex-table-card calls the action repeatedly, so the data may not load until you save, wait 10+ seconds, and then refresh the browswer.
+- Editing flex-table-card calls the action repeatedly, so the data may not load until you save, wait a few seconds, and then refresh the browser.
 
 ## Credits and Inspiration
 
 - [Discogs API Documentation](https://www.discogs.com/developers)
 - [Core Discogs integration](https://github.com/home-assistant/core/tree/dev/homeassistant/components/discogs)
-- [discogs-enhanced by @andreasc1](https://andreasc1/homeassistant-discogs-enhanced)
+- [discogs-enhanced by @andreasc1](https://www.github.com/andreasc1/homeassistant-discogs-enhanced)
 - [Wine-Cellar by @EdLeckert](https://github.com/EdLeckert/wine-cellar)
 - [flex-table-card by @daringer](https://github.com/custom-cards/flex-table-card)
