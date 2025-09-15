@@ -81,6 +81,8 @@ During integration set up, and later using the settings gear in the integration,
 + Rate Limit binary sensor: Turns on if the Discogs API rate limit has been hit. Attributes include the number of calls in the last minute.
 + Refresh buttons: Individual buttons to manually refresh data for each endpoint (collection, wantlist, collection value, random record, user lists, and user folders).
 
+---
+
 ## Available Actions
 
 Note: the data returned even for small collections will exceed the system limit (65535 characters) for entity attributes, so the download collection, wantlist, and user list action responses are returned as responses only with an option to download the response as a JSON file. The responses will NOT be saved to an entity.
@@ -100,7 +102,10 @@ Parameters:
 Returns:
 - Your complete collection data from the `All` folder (or specific folder if defined in the parameters)
 
-Example response: 
+<details>
+   
+<summary>Expand for example response</summary>
+   
 ```
 collection:
   - id: 8302412
@@ -283,6 +288,12 @@ collection:
       - Avantgarde
 ```
 
+</details>
+
+
+---
+
+
 ### Download Wantlist Action - discogs_sync.download_wantlist
 
 This action fetches your complete Discogs wantlist and can optionally save it to a JSON file.
@@ -294,7 +305,10 @@ Parameters:
 Returns:
 - Your complete wantlist data
 
-Example response:
+<details>
+
+<summary>Expand for example response</summary>
+
 ```
 wantlist:
   - id: 31381
@@ -378,12 +392,17 @@ wantlist:
       - Blues Rock
 ```
 
+</details>
+
+---
+
+
 ### Download User List Action - discogs_sync.download_user_list
 
 This action fetches a specified user list and can optionally save it to a JSON file.
 
 Parameters:
-- list_id (required): list ID to download
+- `list_id` (required): list ID to download
 - `path` (optional): Path to save the collection file (default: `discogs_user_list.json` in config folder)
 - `download` (optional): Whether to save to file (default: `false`)
 
