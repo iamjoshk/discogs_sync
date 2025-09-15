@@ -1,0 +1,10 @@
+{
+  "domain": "discogs_sync",
+  "name": "Discogs Sync",
+  "codeowners": ["@iamjoshk"],
+  "config_flow": true,
+  "documentation": "https://github.com/iamjoshk/discogs_sync",
+  "iot_class": "cloud_polling",
+  "issue_tracker": "https://github.com/iamjoshk/discogs_sync/issues",
+  "version": "0.3.0"
+}

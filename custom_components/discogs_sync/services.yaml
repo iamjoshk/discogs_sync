@@ -1,0 +1,68 @@
+download_collection:
+  name: Download Collection
+  description: "Downloads your full Discogs collection data and optionally saves it to a JSON file."
+  fields:
+    path:
+      name: Path
+      description: "The path to save the exported JSON file (only used if download is true)."
+      example: "/config/discogs_collection.json"
+      selector:
+        text:
+    download:
+      name: Download File
+      description: "Whether to save the collection to a file (defaults to false)."
+      default: false
+      selector:
+        boolean:
+    folder_id:
+      name: Folder ID
+      description: "The ID of the specific folder to download (0 for All, or specific folder ID)."
+      default: 0
+      example: 0
+      selector:
+        number:
+          min: 0
+          mode: box
+
+download_wantlist:
+  name: Download Wantlist
+  description: "Downloads your full Discogs wantlist data and optionally saves it to a JSON file."
+  fields:
+    path:
+      name: Path
+      description: "The path to save the exported JSON file (only used if download is true)."
+      example: "/config/discogs_wantlist.json"
+      selector:
+        text:
+    download:
+      name: Download File
+      description: "Whether to save the wantlist to a file (defaults to false)."
+      default: false
+      selector:
+        boolean:
+
+download_user_list:
+  name: Download User List
+  description: "Downloads items from a specific Discogs user list and optionally saves it to a JSON file."
+  fields:
+    list_id:
+      name: List ID
+      description: "The ID of the user list to download (required)."
+      required: true
+      example: 1234567
+      selector:
+        number:
+          min: 1
+          mode: box
+    path:
+      name: Path
+      description: "The path to save the exported JSON file (only used if download is true)."
+      example: "/config/discogs_user_list.json"
+      selector:
+        text:
+    download:
+      name: Download File
+      description: "Whether to save the list to a file (defaults to false)."
+      default: false
+      selector:
+        boolean:

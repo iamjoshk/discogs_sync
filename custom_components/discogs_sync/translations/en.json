@@ -1,0 +1,95 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "Set up Discogs Integration",
+        "description": "Enter your Discogs API token and configure update settings.",
+        "data": {
+          "token": "Discogs API Token",
+          "name": "Name",
+          "enable_scheduled_updates": "Enable automatic updates",
+          "global_update_interval": "Update interval (minutes)"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to Discogs API",
+      "invalid_auth": "Invalid authentication token",
+      "unknown": "Unexpected error"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "Configure Discogs Sync",
+        "description": "Configure how frequently Discogs data is automatically updated. Even when automatic updates are disabled, you can always use the refresh buttons to manually update data.\n\n{update_info}",
+        "data": {
+          "enable_scheduled_updates": "Enable automatic updates"
+        }
+      },
+      "intervals": {
+        "title": "Update Intervals",
+        "description": "Set the update interval for each endpoint below. Values are in minutes from 0 (disabled) to 1440.",
+        "data": {
+          "collection_update_interval": "Collection",
+          "wantlist_update_interval": "Wantlist", 
+          "collection_value_update_interval": "Collection Value",
+          "random_record_update_interval": "Random Record",
+          "user_lists_update_interval": "User Lists",
+          "user_folders_update_interval": "User Folders"
+        }
+      }
+    }
+  },
+  "entity": {
+    "button": {
+      "refresh_collection": {
+        "name": "Refresh Collection"
+      },
+      "refresh_wantlist": {
+        "name": "Refresh Wantlist" 
+      },
+      "refresh_collection_value": {
+        "name": "Refresh Collection Value"
+      },
+      "refresh_random_record": {
+        "name": "Refresh Random Record"
+      },
+      "refresh_user_lists": {
+        "name": "Refresh User Lists"
+      },
+      "refresh_user_folders": {
+        "name": "Refresh User Folders"
+      }
+    },
+    "sensor": {
+      "collection": {
+        "name": "Collection"
+      },
+      "wantlist": {
+        "name": "Wantlist"
+      },
+      "random_record": {
+        "name": "Random Record"
+      },
+      "collection_value_min": {
+        "name": "Collection Value (Min)"
+      },
+      "collection_value_median": {
+        "name": "Collection Value (Median)"
+      },
+      "collection_value_max": {
+        "name": "Collection Value (Max)"
+      },
+      "user_lists": {
+        "name": "User Lists"
+      },
+      "user_folders": {
+        "name": "User Folders"
+      }
+    }
+  }
+}
