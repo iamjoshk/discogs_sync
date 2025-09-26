@@ -41,7 +41,7 @@ async def async_setup_entry(
 class DiscogsRefreshButton(CoordinatorEntity, ButtonEntity):
     """Button for refreshing specific Discogs endpoints."""
     _attr_has_entity_name = True
-    _attr_entity_category = EntityCategory.CONFIG
+    _attr_entity_category = None
     _attr_icon = "mdi:refresh"
     
     def __init__(self, coordinator, endpoint: str, display_name: str):
@@ -62,4 +62,3 @@ class DiscogsRefreshButton(CoordinatorEntity, ButtonEntity):
         success = await self.coordinator.manual_refresh_endpoint(self._endpoint)
         if not success:
             _LOGGER.warning("Failed to refresh %s endpoint", self._endpoint)
-

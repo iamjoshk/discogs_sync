@@ -4,6 +4,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from homeassistant.components.select import SelectEntity
+from homeassistant.const import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -30,6 +31,7 @@ class DiscogsRandomRecordFolderSelect(CoordinatorEntity, SelectEntity):
     
     _attr_has_entity_name = True
     _attr_icon = ICON_FOLDER
+    _attr_entity_category = EntityCategory.CONFIG
     
     def __init__(self, coordinator):
         """Initialize the select entity."""
