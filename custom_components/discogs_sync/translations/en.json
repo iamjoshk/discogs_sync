@@ -39,7 +39,8 @@
           "collection_value_update_interval": "Collection Value",
           "random_record_update_interval": "Random Record",
           "user_lists_update_interval": "User Lists",
-          "user_folders_update_interval": "User Folders"
+          "user_folders_update_interval": "User Folders",
+          "api_status_update_interval": "API Status"
         }
       }
     }

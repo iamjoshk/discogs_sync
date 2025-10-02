@@ -275,7 +275,25 @@ class DiscogsAPIClient:
                          page - 1, pagination.get("pages", 1), len(items))
         
         return all_items
-    
+
+    def get_api_status(self) -> Optional[Dict[str, Any]]:
+        """Check if the Discogs API is available by calling the root endpoint."""
+        try:
+            response = self._make_request("https://api.discogs.com/")
+            if response and response.get("hello"):
+                return {
+                    "hello": response.get("hello"),
+                    "api_version": response.get("api_version"),
+                    "documentation_url": response.get("documentation_url"),
+                    "statistics": response.get("statistics", {}),
+                    "available": True
+                }
+            else:
+                return {"available": False}
+        except Exception as e:
+            _LOGGER.error("Failed to check API status: %s", e)
+            return {"available": False, "error": str(e)}
+            
     @staticmethod
     def _parse_currency(value: str) -> float:
         """Parse currency string to float."""

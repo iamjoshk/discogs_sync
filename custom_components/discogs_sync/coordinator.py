@@ -16,7 +16,8 @@ from .const import (
     CONF_COLLECTION_VALUE_UPDATE_INTERVAL, DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL,
     CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL,
     CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL,
-    CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL
+    CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL,
+    CONF_API_STATUS_UPDATE_INTERVAL, DEFAULT_API_STATUS_UPDATE_INTERVAL
 )
 from .api_client import DiscogsAPIClient
 
@@ -53,7 +54,8 @@ class DiscogsCoordinator(DataUpdateCoordinator):
             "collection_value": entry.options.get(CONF_COLLECTION_VALUE_UPDATE_INTERVAL, DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL),
             "random_record": entry.options.get(CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL),
             "user_lists": entry.options.get(CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL),
-            "user_folders": entry.options.get(CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL)
+            "user_folders": entry.options.get(CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL),
+            "api_status": entry.options.get(CONF_API_STATUS_UPDATE_INTERVAL, DEFAULT_API_STATUS_UPDATE_INTERVAL)
         }
         
         _LOGGER.debug("Initialized coordinator with intervals: %s", self._endpoint_intervals)
@@ -79,7 +81,8 @@ class DiscogsCoordinator(DataUpdateCoordinator):
             (CONF_COLLECTION_VALUE_UPDATE_INTERVAL, DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL),
             (CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL),
             (CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL),
-            (CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL)
+            (CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL),
+            (CONF_API_STATUS_UPDATE_INTERVAL, DEFAULT_API_STATUS_UPDATE_INTERVAL)
         ]:
             interval = entry.options.get(option_key, default)
             if interval > 0:  # Only include enabled endpoints
@@ -87,10 +90,11 @@ class DiscogsCoordinator(DataUpdateCoordinator):
         
         min_interval = min(intervals) if intervals else 10
         return timedelta(minutes=max(min_interval, 1))  # At least 1 minute
-    
+  
     def update_intervals(self, collection_interval=None, wantlist_interval=None, 
                         collection_value_interval=None, random_record_interval=None,
-                        user_lists_interval=None, user_folders_interval=None):
+                        user_lists_interval=None, user_folders_interval=None,
+                        api_status_interval=None):
         """Update the individual endpoint intervals."""
         # Store intervals, allowing 0 to disable endpoints
         self._endpoint_intervals = {
@@ -99,7 +103,8 @@ class DiscogsCoordinator(DataUpdateCoordinator):
             "collection_value": collection_value_interval if collection_value_interval is not None else DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL,
             "random_record": random_record_interval if random_record_interval is not None else DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL,
             "user_lists": user_lists_interval if user_lists_interval is not None else DEFAULT_USER_LISTS_UPDATE_INTERVAL,
-            "user_folders": user_folders_interval if user_folders_interval is not None else DEFAULT_USER_FOLDERS_UPDATE_INTERVAL
+            "user_folders": user_folders_interval if user_folders_interval is not None else DEFAULT_USER_FOLDERS_UPDATE_INTERVAL,
+            "api_status": api_status_interval if api_status_interval is not None else DEFAULT_API_STATUS_UPDATE_INTERVAL
         }
         
         _LOGGER.debug("Updated endpoint intervals: %s", self._endpoint_intervals)
@@ -172,11 +177,30 @@ class DiscogsCoordinator(DataUpdateCoordinator):
             
             self._data["last_updated"]["all"] = time.time()
             
+            # Check API status
+            api_status_interval_minutes = self._endpoint_intervals.get("api_status", 5)
+            if api_status_interval_minutes > 0:  # Only update if not disabled
+                last_api_status_update = self._data.get("api_status", {}).get("last_checked", 0)
+                api_status_interval = api_status_interval_minutes * 60  # Convert to seconds
+                current_time = time.time()
+                
+                if current_time - last_api_status_update > api_status_interval:
+                    api_status = await self.hass.async_add_executor_job(
+                        self.api_client.get_api_status
+                    )
+                    if api_status:
+                        api_status["last_checked"] = current_time
+                        self._data["api_status"] = api_status
+                        _LOGGER.debug("Updated API status")
+            else:
+                _LOGGER.debug("API status updates disabled (interval = 0)")
+            
+            return self._data          
         except Exception as err:
             _LOGGER.error("Error updating Discogs data: %s", err)
         
         return self._data
-    
+
     async def _update_endpoints(self, username: str):
         """Update individual endpoints based on their schedules."""
         current_time = time.time()

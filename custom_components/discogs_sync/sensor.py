@@ -4,7 +4,8 @@ from __future__ import annotations
 import datetime
 from typing import Any, Dict, Optional
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
+from homeassistant.const import EntityCategory
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -58,6 +59,11 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
             "identifiers": {(DOMAIN, coordinator.config_entry.entry_id)},
             "name": coordinator.display_name,
         }
+
+        if sensor_key in ["collection", "wantlist", "user_lists", "user_folders"]:
+            self._attr_state_class = SensorStateClass.MEASUREMENT
+        elif sensor_key.startswith("collection_value_"):
+            self._attr_state_class = SensorStateClass.MEASUREMENT
 
     @property
     def native_value(self) -> Any:

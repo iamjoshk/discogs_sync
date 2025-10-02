@@ -9,7 +9,8 @@ from .const import (
     CONF_COLLECTION_VALUE_UPDATE_INTERVAL, DEFAULT_COLLECTION_VALUE_UPDATE_INTERVAL,
     CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL,
     CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL,
-    CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL
+    CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL,
+    CONF_API_STATUS_UPDATE_INTERVAL, DEFAULT_API_STATUS_UPDATE_INTERVAL
 )
 
 class DiscogsConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -94,6 +95,7 @@ class DiscogsOptionsFlowHandler(config_entries.OptionsFlow):
                 (CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL),
                 (CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL),
                 (CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL),
+                (CONF_API_STATUS_UPDATE_INTERVAL, DEFAULT_API_STATUS_UPDATE_INTERVAL),
             ]:
                 new_value = user_input.get(key)
                 if new_value is not None and new_value != "":
@@ -111,6 +113,7 @@ class DiscogsOptionsFlowHandler(config_entries.OptionsFlow):
         current_random = self._entry_options.get(CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL)
         current_lists = self._entry_options.get(CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL)
         current_folders = self._entry_options.get(CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL)
+        current_api_status = self._entry_options.get(CONF_API_STATUS_UPDATE_INTERVAL, DEFAULT_API_STATUS_UPDATE_INTERVAL)
         
         # Format current intervals display
         def format_interval(interval):
@@ -123,7 +126,8 @@ class DiscogsOptionsFlowHandler(config_entries.OptionsFlow):
             f"Collection Value: {format_interval(current_value)}\n"
             f"Random Record: {format_interval(current_random)}\n"
             f"User Lists: {format_interval(current_lists)}\n"
-            f"User Folders: {format_interval(current_folders)}"
+            f"User Folders: {format_interval(current_folders)}\n"
+            f"API Status: {format_interval(current_api_status)}"
         )
 
         # Show interval configuration 
@@ -153,6 +157,10 @@ class DiscogsOptionsFlowHandler(config_entries.OptionsFlow):
                 vol.Optional(
                     CONF_USER_FOLDERS_UPDATE_INTERVAL,
                     default=current_folders,
+                ): vol.All(vol.Coerce(int), vol.Range(min=0, max=1440)),
+                vol.Optional(
+                    CONF_API_STATUS_UPDATE_INTERVAL,
+                    default=current_api_status,
                 ): vol.All(vol.Coerce(int), vol.Range(min=0, max=1440)),
             }),
         )
