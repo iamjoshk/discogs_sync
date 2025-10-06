@@ -61,9 +61,9 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
         }
 
         if sensor_key in ["collection", "wantlist", "user_lists", "user_folders"]:
-            self._attr_state_class = SensorStateClass.MEASUREMENT
+            self._attr_state_class = SensorStateClass.TOTAL
         elif sensor_key.startswith("collection_value_"):
-            self._attr_state_class = SensorStateClass.MEASUREMENT
+            self._attr_state_class = SensorStateClass.TOTAL
 
     @property
     def native_value(self) -> Any:
