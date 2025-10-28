@@ -21,6 +21,7 @@ This integration brings your full [Discogs](https://www.discogs.com) collection 
 - Buttons to refresh data for each API endpoint
 - Actions that return collection, wantlist, and user lists data for use in dashboards
 - Rate limit monitor
+- API Status monitor
 - Support for flex-table-card integration
 
 ## Installation

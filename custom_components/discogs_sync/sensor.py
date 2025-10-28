@@ -4,7 +4,7 @@ from __future__ import annotations
 import datetime
 from typing import Any, Dict, Optional
 
-from homeassistant.components.sensor import SensorEntity
+from homeassistant.components.sensor import SensorEntity, SensorStateClass
 from homeassistant.helpers.update_coordinator import CoordinatorEntity
 from homeassistant.core import HomeAssistant
 from homeassistant.helpers.entity_platform import AddEntitiesCallback
@@ -59,6 +59,12 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
             "name": coordinator.display_name,
         }
 
+        # Set state class for long-term statistics - ONLY for numeric sensors
+        if sensor_key in ["collection", "wantlist", "user_lists", "user_folders"]:
+            self._attr_state_class = SensorStateClass.TOTAL
+        elif sensor_key.startswith("collection_value_"):
+            self._attr_state_class = SensorStateClass.TOTAL
+
     @property
     def native_value(self) -> Any:
         """Return the state of the sensor."""
@@ -66,36 +72,51 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
         
         if self._sensor_key == "collection":
             value = data.get("collection_count")
-            return value if value is not None else 0
+            # MUST return numeric value for statistics
+            return int(value) if value is not None else 0
         elif self._sensor_key == "wantlist":
             value = data.get("wantlist_count") 
-            return value if value is not None else 0
+            # MUST return numeric value for statistics
+            return int(value) if value is not None else 0
         elif self._sensor_key == "random_record":
+            # Text values don't get statistics - no state class
             return data.get("random_record", {}).get("title")
         elif self._sensor_key == "collection_value_min":
-            return data.get("collection_value", {}).get("min")
+            value = data.get("collection_value", {}).get("min")
+            # MUST return numeric value for statistics, can't be None
+            return float(value) if value is not None else 0.0
         elif self._sensor_key == "collection_value_median":
-            return data.get("collection_value", {}).get("median")
+            value = data.get("collection_value", {}).get("median")
+            # MUST return numeric value for statistics, can't be None
+            return float(value) if value is not None else 0.0
         elif self._sensor_key == "collection_value_max":
-            return data.get("collection_value", {}).get("max")
+            value = data.get("collection_value", {}).get("max")
+            # MUST return numeric value for statistics, can't be None
+            return float(value) if value is not None else 0.0
         elif self._sensor_key == "user_lists":
-            return data.get("user_lists", {}).get("count", 0)
+            value = data.get("user_lists", {}).get("count", 0)
+            # MUST return numeric value for statistics
+            return int(value)
         elif self._sensor_key == "user_folders":
-            return data.get("user_folders", {}).get("count", 0)
+            value = data.get("user_folders", {}).get("count", 0)
+            # MUST return numeric value for statistics
+            return int(value)
         
         return None
 
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        # Check if we have a username (indicates we've fetched data at least once)
+        # Entity must be available for statistics to work
         return self.coordinator.data.get("user") is not None
 
     @property
     def native_unit_of_measurement(self) -> Optional[str]:
         """Return the unit of measurement."""
         if self._sensor_key.startswith("collection_value_"):
-            return self.coordinator.data.get("collection_value", {}).get("currency", "USD")
+            currency = self.coordinator.data.get("collection_value", {}).get("currency", "USD")
+            # Ensure consistent currency format for statistics
+            return currency.upper() if currency else "USD"
         return self._attr_native_unit_of_measurement
 
     @property
