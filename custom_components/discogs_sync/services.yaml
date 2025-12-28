@@ -66,3 +66,39 @@ download_user_list:
       default: false
       selector:
         boolean:
+
+download_image:
+  name: Download Image
+  description: "Downloads cover image or thumbnail for a specific Discogs release."
+  fields:
+    release_id:
+      name: Release ID
+      description: "The ID of the Discogs release to download image for (required)."
+      required: true
+      example: 249504
+      selector:
+        number:
+          min: 1
+          mode: box
+    image_type:
+      name: Image Type
+      description: "Whether to download the full cover image or thumbnail."
+      default: "cover"
+      example: "cover"
+      selector:
+        select:
+          options:
+            - "cover"
+            - "thumb"
+    path:
+      name: Path
+      description: "The path to save the image file (only used if download is true)."
+      example: "/config/discogs_release_249504_cover.jpg"
+      selector:
+        text:
+    download:
+      name: Download File
+      description: "Whether to save the image to a file (defaults to false)."
+      default: false
+      selector:
+        boolean:

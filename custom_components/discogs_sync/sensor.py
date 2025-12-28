@@ -128,6 +128,9 @@ class DiscogsSensor(CoordinatorEntity, SensorEntity):
         if self._sensor_key == "random_record":
             record_data = self.coordinator.data.get("random_record", {}).get("data", {})
             attrs.update(record_data)
+            # Add release_id for image download service
+            if "basic_information" in record_data:
+                attrs["release_id"] = record_data["basic_information"].get("id")
         elif self._sensor_key == "user_lists":
             lists_data = self.coordinator.data.get("user_lists", {}).get("lists", [])
             if lists_data:

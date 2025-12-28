@@ -50,6 +50,7 @@ async def async_unload_entry(hass: HomeAssistant, entry: ConfigEntry):
             hass.services.async_remove(DOMAIN, "download_collection")
             hass.services.async_remove(DOMAIN, "download_wantlist")
             hass.services.async_remove(DOMAIN, "download_user_list")
+            hass.services.async_remove(DOMAIN, "download_image")
             
     return unload_ok
 

@@ -328,3 +328,58 @@ class DiscogsAPIClient:
             return format_name
         return None
 
+    def get_release_data(self, release_id: int) -> Optional[Dict[str, Any]]:
+        """Get release data including image URLs."""
+        url = f"https://api.discogs.com/releases/{release_id}"
+        return self._make_request(url)
+
+    def download_release_image(self, release_id: int, image_type: str = "cover") -> Optional[bytes]:
+        """Download cover image or thumb for a release.
+        
+        Args:
+            release_id: The Discogs release ID
+            image_type: Either 'cover' or 'thumb'
+        
+        Returns:
+            Image data as bytes, or None if failed
+        """
+        # First get the release data to find image URLs
+        release_data = self.get_release_data(release_id)
+        if not release_data:
+            _LOGGER.error("Could not get release data for ID %s", release_id)
+            return None
+        
+        # Get images array
+        images = release_data.get("images", [])
+        if not images:
+            _LOGGER.warning("No images found for release ID %s", release_id)
+            return None
+        
+        # Find the primary image (first one is usually primary)
+        primary_image = images[0]
+        
+        # Choose URL based on image type
+        if image_type == "thumb":
+            image_url = primary_image.get("uri150")  # Thumbnail URL
+        else:
+            image_url = primary_image.get("uri")     # Full size URL
+        
+        if not image_url:
+            _LOGGER.error("No %s image URL found for release ID %s", image_type, release_id)
+            return None
+        
+        # Download the image
+        try:
+            self._wait_for_rate_limit()
+            self._last_request_time = time.time()
+            
+            response = requests.get(image_url, headers=self.headers, timeout=30)
+            response.raise_for_status()
+            
+            _LOGGER.info("Successfully downloaded %s image for release ID %s", image_type, release_id)
+            return response.content
+            
+        except Exception as err:
+            _LOGGER.error("Failed to download %s image for release ID %s: %s", image_type, release_id, err)
+            return None
+
