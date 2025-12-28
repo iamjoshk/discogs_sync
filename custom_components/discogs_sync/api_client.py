@@ -196,11 +196,13 @@ class DiscogsAPIClient:
         return {
             "title": f"{artist_name} - {title}",
             "data": {
+                "release_id": basic_info.get("id"),  # Add release_id directly
                 "cat_no": basic_info.get("labels", [{}])[0].get("catno") if basic_info.get("labels") else None,
                 "cover_image": basic_info.get("cover_image"),
                 "format": self._format_string(basic_info),
                 "label": basic_info.get("labels", [{}])[0].get("name") if basic_info.get("labels") else None,
                 "released": basic_info.get("year"),
+                "basic_information": basic_info  # Keep the full basic_information for compatibility
             }
         }
     
