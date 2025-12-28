@@ -76,6 +76,7 @@ download_image:
       description: "The ID of the Discogs release to download image for (required)."
       required: true
       example: 249504
+      template: true
       selector:
         number:
           min: 1
@@ -94,6 +95,7 @@ download_image:
       name: Path
       description: "The path to save the image file (only used if download is true)."
       example: "/config/discogs_release_249504_cover.jpg"
+      template: true
       selector:
         text:
     download:
