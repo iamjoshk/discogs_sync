@@ -20,6 +20,7 @@ This integration brings your full [Discogs](https://www.discogs.com) collection 
 - User folders sensor with folder details in attributes
 - Buttons to refresh data for each API endpoint
 - Actions that return collection, wantlist, and user lists data for use in dashboards
+- Action that downloads thumbnail and cover art to local storage
 - Rate limit monitor
 - API Status monitor
 - Support for flex-table-card integration
