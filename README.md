@@ -1,6 +1,3 @@
-> [!IMPORTANT]
-> This custom integration is still in early development phase. Existing features are working, though they may be updated or changed in the future.
-
 
 # Discogs Sync - Home Assistant Discogs Integration
 
