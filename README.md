@@ -296,7 +296,7 @@ collection:
 ---
 
 
-### Download Wantlist Action - discogs_sync.download_wantlist
+### Download Wantlist Action - `discogs_sync.download_wantlist`
 
 This action fetches your complete Discogs wantlist and can optionally save it to a JSON file.
 
@@ -399,7 +399,7 @@ wantlist:
 ---
 
 
-### Download User List Action - discogs_sync.download_user_list
+### Download User List Action - `discogs_sync.download_user_list`
 
 This action fetches a specified user list and can optionally save it to a JSON file.
 
@@ -412,6 +412,20 @@ Returns:
 - The complete user list data
 
 > Note: The lists that can be queried are not limited to your lists; however, private lists are only returned when your API call is authenticated as the owner. So you can return your own private lists and any public lists as long as you know the list ID. For a public list, the list ID is the number in the URL of the list on Discogs. For example: `https://www.discogs.com/lists/Album-covers-with-cats/1593344` the list id is `1593344`. Many lists are VERY long, so it may take some time to return the response. Be careful what you do with the data!
+
+### Download Image Action - `discogs_sync.download_image`
+
+This action uses an authenticated API call to download cover art or thumbnails from Discogs.
+
+Parameters:
+- `release_id` (required): the release ID for the image you want to download
+- `image_type` (required): choose cover or thumb
+- `path` (optional): specify the path and filename you want to download the image to, templatable
+- `download_file` (optional): enable downloading to the specified path
+
+Returns:
+- The image you requested
+
 
 ## Using with flex-table-card
 
