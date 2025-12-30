@@ -70,8 +70,6 @@ download_user_list:
 download_image:
   name: Download Image
   description: "Downloads cover image or thumbnail for a specific Discogs release."
-  target:
-    integration: discogs_sync
   fields:
     release_id:
       name: Release ID
