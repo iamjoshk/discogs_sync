@@ -70,17 +70,16 @@ download_user_list:
 download_image:
   name: Download Image
   description: "Downloads cover image or thumbnail for a specific Discogs release."
+  target:
+    integration: discogs_sync
   fields:
     release_id:
       name: Release ID
-      description: "The ID of the Discogs release to download image for (required)."
+      description: "The ID of the Discogs release to download image for (required). Templates are supported."
       required: true
-      example: 249504
-      template: true
+      example: "{{ state_attr('sensor.discogs_sync_random_record', 'release_id') }}"
       selector:
-        number:
-          min: 1
-          mode: box
+        text:
     image_type:
       name: Image Type
       description: "Whether to download the full cover image or thumbnail."
@@ -93,9 +92,8 @@ download_image:
             - "thumb"
     path:
       name: Path
-      description: "The path to save the image file (only used if download is true)."
-      example: "/config/discogs_release_249504_cover.jpg"
-      template: true
+      description: "The path to save the image file (only used if download is true). Templates are supported."
+      example: "/config/discogs_images/release_{{ state_attr('sensor.discogs_sync_random_record', 'release_id') }}_cover.jpg"
       selector:
         text:
     download:

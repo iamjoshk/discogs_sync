@@ -6,5 +6,5 @@
   "documentation": "https://github.com/iamjoshk/discogs_sync",
   "iot_class": "cloud_polling",
   "issue_tracker": "https://github.com/iamjoshk/discogs_sync/issues",
-  "version": "0.4.0-beta3"
+  "version": "0.4.0-beta4"
 }
