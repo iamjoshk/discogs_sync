@@ -30,6 +30,10 @@ async def async_register_services(hass: HomeAssistant) -> None:
         """Download user list data."""
         return await _handle_download_service(hass, call, "user_list")
 
+    async def download_image_service(call: ServiceCall) -> Optional[Dict]:
+        """Download cover image or thumb for a release."""
+        return await _handle_image_download_service(hass, call)
+
     # Register services
     hass.services.async_register(
         DOMAIN,
@@ -49,6 +53,13 @@ async def async_register_services(hass: HomeAssistant) -> None:
         DOMAIN,
         "download_user_list", 
         download_user_list_service,
+        supports_response=SupportsResponse.ONLY,
+    )
+    
+    hass.services.async_register(
+        DOMAIN,
+        "download_image", 
+        download_image_service,
         supports_response=SupportsResponse.ONLY,
     )
 
@@ -124,3 +135,81 @@ async def _handle_download_service(
     except Exception as err:
         _LOGGER.error("Failed to download %s: %s", service_type, err)
         return {"error": f"Failed to download {service_type}: {str(err)}"}
+
+
+async def _handle_image_download_service(
+    hass: HomeAssistant, 
+    call: ServiceCall
+) -> Optional[Dict]:
+    """Handle image download service calls with rate limiting."""
+    
+    # Check rate limiting
+    now = datetime.now()
+    last_call = _last_service_calls.get("image_download", datetime.min)
+    
+    if now - last_call < _min_service_interval:
+        time_to_wait = (last_call + _min_service_interval - now).total_seconds()
+        return {"error": f"Service called too frequently. Try again in {time_to_wait:.1f} seconds."}
+    
+    _last_service_calls["image_download"] = now
+    
+    # Get coordinator from any entry (they all use the same API client)
+    coordinator = None
+    for entry_data in hass.data.get(DOMAIN, {}).values():
+        if hasattr(entry_data, 'api_client'):
+            coordinator = entry_data
+            break
+    
+    if not coordinator:
+        _LOGGER.error("No Discogs coordinator found")
+        return {"error": "Discogs integration not configured"}
+    
+    try:
+        # Get release_id from service call data (required)
+        release_id = call.data.get("release_id")
+        if release_id is None:
+            return {"error": "release_id parameter is required"}
+        
+        # Get image_type from service call data (defaults to "cover")
+        image_type = call.data.get("image_type", "cover")
+        if image_type not in ["cover", "thumb"]:
+            return {"error": "image_type must be either 'cover' or 'thumb'"}
+        
+        # Download the image
+        image_data = await hass.async_add_executor_job(
+            coordinator.api_client.download_release_image,
+            release_id,
+            image_type
+        )
+        
+        if image_data:
+            # Handle file download if requested
+            should_download = call.data.get("download", False)
+            if should_download and image_data:
+                # Determine file extension based on image type and content
+                file_extension = "jpg"  # Default to jpg
+                filename = f"discogs_release_{release_id}_{image_type}.{file_extension}"
+                file_path = call.data.get("path", hass.config.path(filename))
+                
+                # Write image data to file
+                await hass.async_add_executor_job(_write_image_file, file_path, image_data)
+                _LOGGER.info("Saved %s image for release %s to %s", image_type, release_id, file_path)
+            
+            return {
+                "release_id": release_id,
+                "image_type": image_type,
+                "size": len(image_data),
+                "message": f"Successfully downloaded {image_type} image for release {release_id}"
+            }
+        else:
+            return {"error": f"Failed to download {image_type} image for release {release_id}"}
+        
+    except Exception as err:
+        _LOGGER.error("Failed to download image: %s", err)
+        return {"error": f"Failed to download image: {str(err)}"}
+
+
+def _write_image_file(file_path: str, image_data: bytes) -> None:
+    """Write image data to file."""
+    with open(file_path, "wb") as f:
+        f.write(image_data)

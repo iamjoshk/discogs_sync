@@ -66,3 +66,37 @@ download_user_list:
       default: false
       selector:
         boolean:
+
+download_image:
+  name: Download Image
+  description: "Downloads cover image or thumbnail for a specific Discogs release."
+  fields:
+    release_id:
+      name: Release ID
+      description: "The ID of the Discogs release to download image for (required). Templates are supported."
+      required: true
+      example: "{{ state_attr('sensor.discogs_sync_random_record', 'release_id') }}"
+      selector:
+        text:
+    image_type:
+      name: Image Type
+      description: "Whether to download the full cover image or thumbnail."
+      default: "cover"
+      example: "cover"
+      selector:
+        select:
+          options:
+            - "cover"
+            - "thumb"
+    path:
+      name: Path
+      description: "The path to save the image file (only used if download is true). Templates are supported."
+      example: "/config/discogs_images/release_{{ state_attr('sensor.discogs_sync_random_record', 'release_id') }}_cover.jpg"
+      selector:
+        text:
+    download:
+      name: Download File
+      description: "Whether to save the image to a file (defaults to false)."
+      default: false
+      selector:
+        boolean:
