@@ -8,6 +8,7 @@ USER_AGENT = "DiscogsSync/1.0 +https://github.com/iamjoshk/discogs_sync"
 
 # Configuration options
 CONF_ENABLE_SCHEDULED_UPDATES = "enable_scheduled_updates"
+CONF_ENABLE_API_CALLS = "enable_api_calls"
 CONF_COLLECTION_UPDATE_INTERVAL = "collection_update_interval"
 CONF_WANTLIST_UPDATE_INTERVAL = "wantlist_update_interval"
 CONF_COLLECTION_VALUE_UPDATE_INTERVAL = "collection_value_update_interval"
@@ -34,4 +35,6 @@ ICON_PLAYER = "mdi:record-player"
 ICON_CASH = "mdi:cash"
 ICON_LIST = "mdi:format-list-bulleted"
 ICON_FOLDER = "mdi:folder-multiple"
+ICON_API = "mdi:api"
+ICON_API_OFF = "mdi:api-off"
 

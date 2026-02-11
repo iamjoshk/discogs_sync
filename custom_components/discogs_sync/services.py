@@ -92,6 +92,11 @@ async def _handle_download_service(
         _LOGGER.error("No Discogs coordinator found")
         return {"error": "Discogs integration not configured"}
     
+    # Check if API calls are enabled
+    if not coordinator.is_api_enabled:
+        _LOGGER.warning("API calls are disabled via switch")
+        return {"error": "API calls are currently disabled. Enable the API Control switch to use services."}
+    
     try:
         # Get data based on service type
         if service_type == "collection":
@@ -163,6 +168,11 @@ async def _handle_image_download_service(
     if not coordinator:
         _LOGGER.error("No Discogs coordinator found")
         return {"error": "Discogs integration not configured"}
+    
+    # Check if API calls are enabled
+    if not coordinator.is_api_enabled:
+        _LOGGER.warning("API calls are disabled via switch")
+        return {"error": "API calls are currently disabled. Enable the API Control switch to use services."}
     
     try:
         # Get release_id from service call data (required)

@@ -17,7 +17,8 @@ from .const import (
     CONF_RANDOM_RECORD_UPDATE_INTERVAL, DEFAULT_RANDOM_RECORD_UPDATE_INTERVAL,
     CONF_USER_LISTS_UPDATE_INTERVAL, DEFAULT_USER_LISTS_UPDATE_INTERVAL,
     CONF_USER_FOLDERS_UPDATE_INTERVAL, DEFAULT_USER_FOLDERS_UPDATE_INTERVAL,
-    CONF_API_STATUS_UPDATE_INTERVAL, DEFAULT_API_STATUS_UPDATE_INTERVAL
+    CONF_API_STATUS_UPDATE_INTERVAL, DEFAULT_API_STATUS_UPDATE_INTERVAL,
+    CONF_ENABLE_API_CALLS
 )
 from .api_client import DiscogsAPIClient
 
@@ -32,6 +33,9 @@ class DiscogsCoordinator(DataUpdateCoordinator):
         self.config_entry = entry
         self.api_client = DiscogsAPIClient(entry.data[CONF_TOKEN])
         self.display_name = entry.data.get(CONF_NAME, DEFAULT_NAME)
+        
+        # API control state - default to enabled
+        self._is_api_enabled = entry.options.get(CONF_ENABLE_API_CALLS, True)
         
         # Initialize data structure
         self._data = {
@@ -116,6 +120,16 @@ class DiscogsCoordinator(DataUpdateCoordinator):
     
     async def _async_update_data(self) -> Dict[str, Any]:
         """Fetch data from Discogs."""
+        if not self._is_api_enabled:
+            _LOGGER.debug("API calls disabled, preserving last known values for entities")
+            # Ensure we still have the preserved data structure with last good values
+            preserved_entities = [
+                "collection_count", "wantlist_count", "collection_value", 
+                "random_record", "user_lists", "user_folders"
+            ]
+            _LOGGER.debug("Preserving values for: %s", preserved_entities)
+            return self._data
+            
         if not self.config_entry.options.get("enable_scheduled_updates", True):
             _LOGGER.debug("Automatic updates disabled")
             return self._data
@@ -288,6 +302,10 @@ class DiscogsCoordinator(DataUpdateCoordinator):
     
     async def manual_refresh_endpoint(self, endpoint: str) -> bool:
         """Manually refresh a specific endpoint."""
+        if not self._is_api_enabled:
+            _LOGGER.debug("API calls disabled, cannot refresh %s", endpoint)
+            return False
+            
         username = self._data.get("user")
         if not username or username == "Unknown":
             return False
@@ -392,3 +410,22 @@ class DiscogsCoordinator(DataUpdateCoordinator):
         return await self.hass.async_add_executor_job(
             self.api_client.get_user_list_items, username, list_id
         )
+    
+    @property
+    def is_api_enabled(self) -> bool:
+        """Return True if API calls are enabled."""
+        return self._is_api_enabled
+    
+    async def async_set_api_enabled(self, enabled: bool) -> None:
+        """Enable or disable API calls."""
+        self._is_api_enabled = enabled
+        
+        # Update the config entry options
+        new_options = {**self.config_entry.options}
+        new_options[CONF_ENABLE_API_CALLS] = enabled
+        
+        self.hass.config_entries.async_update_entry(
+            self.config_entry, options=new_options
+        )
+        
+        _LOGGER.info("API calls %s", "enabled" if enabled else "disabled")

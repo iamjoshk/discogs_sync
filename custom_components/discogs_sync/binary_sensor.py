@@ -49,16 +49,29 @@ class DiscogsRateLimitSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return if rate limit is exceeded."""
+        # If API is disabled, rate limit is not a problem
+        if not self.coordinator.is_api_enabled:
+            return False
         return self.coordinator.get_rate_limit_data().get("exceeded", False)
 
     @property
     def available(self) -> bool:
         """Return if entity is available."""
+        # Available if API is enabled and we have data, or if API is disabled (to show state)
+        if not self.coordinator.is_api_enabled:
+            return True  # Show as available but "off" when API disabled
         return self.coordinator.get_rate_limit_data().get("last_updated") is not None
 
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return rate limit attributes."""
+        # If API is disabled, show disabled status
+        if not self.coordinator.is_api_enabled:
+            return {
+                "status": "API calls disabled",
+                "description": "Rate limit monitoring inactive while API calls are disabled"
+            }
+            
         data = self.coordinator.get_rate_limit_data()
         
         attributes = {
@@ -104,6 +117,10 @@ class DiscogsAPIStatusSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return True if API is NOT available (problem state)."""
+        # If API is manually disabled, don't show as problem
+        if not self.coordinator.is_api_enabled:
+            return False  # No problem when manually disabled
+            
         api_status = self.coordinator.data.get("api_status", {})
         # Return True (problem) if hello field is NOT defined
         return api_status.get("hello") is None
@@ -111,11 +128,18 @@ class DiscogsAPIStatusSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
+        # Available if API is enabled and we have data, or if API is disabled (to show state)
+        if not self.coordinator.is_api_enabled:
+            return True  # Show as available but "off" when API disabled
         return self.coordinator.data.get("api_status", {}).get("last_checked") is not None
 
     @property
     def icon(self) -> str:
         """Return the icon based on API status."""
+        # Show API off icon when manually disabled
+        if not self.coordinator.is_api_enabled:
+            return "mdi:api-off"
+            
         if self.is_on:  # API is down (problem state)
             return "mdi:api-off"
         else:  # API is up
@@ -124,6 +148,14 @@ class DiscogsAPIStatusSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def extra_state_attributes(self) -> Dict[str, Any]:
         """Return API status attributes."""
+        # If API is disabled, show disabled status
+        if not self.coordinator.is_api_enabled:
+            return {
+                "status": "API calls manually disabled",
+                "description": "API monitoring inactive while API calls are disabled",
+                "last_known_state": "disabled"
+            }
+            
         api_status = self.coordinator.data.get("api_status", {})
         
         attributes = {}
