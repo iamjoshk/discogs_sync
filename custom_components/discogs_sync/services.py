@@ -94,7 +94,7 @@ async def _handle_download_service(
     
     # Check if API calls are enabled
     if not coordinator.is_api_enabled:
-        _LOGGER.warning("API calls are disabled via switch")
+        _LOGGER.debug("API calls are disabled via switch")
         return {"error": "API calls are currently disabled. Enable the API Control switch to use services."}
     
     try:
@@ -171,7 +171,7 @@ async def _handle_image_download_service(
     
     # Check if API calls are enabled
     if not coordinator.is_api_enabled:
-        _LOGGER.warning("API calls are disabled via switch")
+        _LOGGER.debug("API calls are disabled via switch")
         return {"error": "API calls are currently disabled. Enable the API Control switch to use services."}
     
     try:
