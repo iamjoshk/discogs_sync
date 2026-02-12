@@ -383,6 +383,10 @@ class DiscogsCoordinator(DataUpdateCoordinator):
     
     async def get_full_collection(self, folder_id: int = 0) -> list:
         """Get full collection data."""
+        if not self._is_api_enabled:
+            _LOGGER.debug("API calls disabled, cannot get full collection")
+            return []
+            
         username = self._data.get("user")
         if not username or username == "Unknown":
             return []
@@ -393,6 +397,10 @@ class DiscogsCoordinator(DataUpdateCoordinator):
     
     async def get_full_wantlist(self) -> list:
         """Get full wantlist data."""
+        if not self._is_api_enabled:
+            _LOGGER.debug("API calls disabled, cannot get full wantlist")
+            return []
+            
         username = self._data.get("user")
         if not username or username == "Unknown":
             return []
@@ -403,6 +411,10 @@ class DiscogsCoordinator(DataUpdateCoordinator):
     
     async def get_user_list_items(self, list_id: int) -> list:
         """Get user list items data."""
+        if not self._is_api_enabled:
+            _LOGGER.debug("API calls disabled, cannot get user list items")
+            return []
+            
         username = self._data.get("user")
         if not username or username == "Unknown":
             return []

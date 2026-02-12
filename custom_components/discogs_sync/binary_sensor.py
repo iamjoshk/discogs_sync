@@ -49,7 +49,7 @@ class DiscogsRateLimitSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return if rate limit is exceeded."""
-        # If API is disabled, rate limit is not a problem
+        # Only return rate limit status if API is enabled
         if not self.coordinator.is_api_enabled:
             return False
         return self.coordinator.get_rate_limit_data().get("exceeded", False)
@@ -57,9 +57,9 @@ class DiscogsRateLimitSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        # Available if API is enabled and we have data, or if API is disabled (to show state)
+        # Unavailable when API is disabled since we can't check rate limits
         if not self.coordinator.is_api_enabled:
-            return True  # Show as available but "off" when API disabled
+            return False
         return self.coordinator.get_rate_limit_data().get("last_updated") is not None
 
     @property
@@ -117,9 +117,9 @@ class DiscogsAPIStatusSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def is_on(self) -> bool:
         """Return True if API is NOT available (problem state)."""
-        # If API is manually disabled, don't show as problem
+        # Only return API status if API is enabled
         if not self.coordinator.is_api_enabled:
-            return False  # No problem when manually disabled
+            return False
             
         api_status = self.coordinator.data.get("api_status", {})
         # Return True (problem) if hello field is NOT defined
@@ -128,18 +128,14 @@ class DiscogsAPIStatusSensor(CoordinatorEntity, BinarySensorEntity):
     @property
     def available(self) -> bool:
         """Return if entity is available."""
-        # Available if API is enabled and we have data, or if API is disabled (to show state)
+        # Unavailable when API is disabled since we can't check API status
         if not self.coordinator.is_api_enabled:
-            return True  # Show as available but "off" when API disabled
+            return False
         return self.coordinator.data.get("api_status", {}).get("last_checked") is not None
 
     @property
     def icon(self) -> str:
         """Return the icon based on API status."""
-        # Show API off icon when manually disabled
-        if not self.coordinator.is_api_enabled:
-            return "mdi:api-off"
-            
         if self.is_on:  # API is down (problem state)
             return "mdi:api-off"
         else:  # API is up
