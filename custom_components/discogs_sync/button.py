@@ -57,6 +57,10 @@ class DiscogsRefreshButton(CoordinatorEntity, ButtonEntity):
         
     async def async_press(self):
         """Handle button press."""
+        if not self.coordinator.is_api_enabled:
+            _LOGGER.warning("Cannot refresh %s - API calls are disabled", self._endpoint)
+            return
+            
         _LOGGER.debug("Refreshing %s endpoint", self._endpoint)
         
         success = await self.coordinator.manual_refresh_endpoint(self._endpoint)
